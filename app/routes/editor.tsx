@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { MarkdownRenderer } from '../components/markdown-renderer'
 import { AppHeader } from '../components/app-header'
 import type { Route } from './+types/editor'
 
@@ -29,29 +30,10 @@ type Document = {
 
 const PAGE_SIZES = {
   a4: { label: 'A4', width: 210, height: 297 },
-  letter: { label: 'Letter', width: 216, height: 279 },
 } as const
 
 type PageSize = keyof typeof PAGE_SIZES
 
-const MARKDOWN_CLASSES = {
-  h1: 'text-3xl font-semibold text-[#0f172a] avoid-break',
-  h2: 'text-2xl font-semibold text-[#0f172a] avoid-break',
-  h3: 'text-xl font-semibold text-[#0f172a] avoid-break',
-  h4: 'text-lg font-semibold text-[#0f172a] avoid-break',
-  h5: 'text-base font-semibold text-[#0f172a] avoid-break',
-  h6: 'text-sm font-semibold text-[#0f172a] avoid-break',
-  p: 'mt-3 text-[#334155]',
-  ul: 'mt-3 list-disc pl-5 text-[#334155]',
-  ol: 'mt-3 list-decimal pl-5 text-[#334155]',
-  li: 'mt-1',
-  a: 'text-[#0ea5e9] underline underline-offset-4',
-  code: 'rounded-md bg-[#f1f5f9] px-2 py-0.5 text-[0.95em]',
-  pre: 'mt-4 rounded-2xl bg-[#0f172a] p-4 text-[#f1f5f9] overflow-auto avoid-break',
-  blockquote:
-    'mt-4 border-l-4 border-[#38bdf8] bg-[#f0f9ff] px-4 py-3 text-[#334155] avoid-break',
-  hr: 'my-6 border-t border-[#e2e8f0]',
-} as const
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -63,261 +45,6 @@ export function meta({}: Route.MetaArgs) {
   ]
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
-
-function sanitizeUrl(value: string) {
-  const trimmed = value.trim()
-  if (
-    trimmed.startsWith('http://') ||
-    trimmed.startsWith('https://') ||
-    trimmed.startsWith('mailto:') ||
-    trimmed.startsWith('#')
-  ) {
-    return trimmed
-  }
-  return '#'
-}
-
-function formatInline(text: string) {
-  let formatted = escapeHtml(text)
-
-  formatted = formatted.replace(/\[([^\]]+)]\(([^)]+)\)/g, (_, label, url) => {
-    const safeUrl = sanitizeUrl(url)
-    return `<a class="${MARKDOWN_CLASSES.a}" href="${safeUrl}" target="_blank" rel="noreferrer">${label}</a>`
-  })
-
-  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-  formatted = formatted.replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>')
-  formatted = formatted.replace(
-    /`([^`]+)`/g,
-    `<code class="${MARKDOWN_CLASSES.code}">$1</code>`,
-  )
-
-  return formatted
-}
-
-function renderMarkdown(markdown: string) {
-  const lines = markdown.replace(/\r\n/g, '\n').split('\n')
-  const parts: string[] = []
-  let inCodeBlock = false
-  let codeFence = ''
-  let codeLines: string[] = []
-  let listBuffer: string[] = []
-  let orderedListBuffer: string[] = []
-  let quoteBuffer: string[] = []
-  let blankStreak = 0
-  const blankLineSpacer = '<div style="height: 1.2em"></div>'
-
-  const flushList = () => {
-    if (listBuffer.length > 0) {
-      parts.push(
-        `<ul class="${MARKDOWN_CLASSES.ul}">${listBuffer.join('')}</ul>`,
-      )
-      listBuffer = []
-    }
-  }
-
-  const flushOrderedList = () => {
-    if (orderedListBuffer.length > 0) {
-      parts.push(
-        `<ol class="${MARKDOWN_CLASSES.ol}">${orderedListBuffer.join('')}</ol>`,
-      )
-      orderedListBuffer = []
-    }
-  }
-
-  const flushQuote = () => {
-    if (quoteBuffer.length > 0) {
-      parts.push(
-        `<blockquote class="${MARKDOWN_CLASSES.blockquote}">${quoteBuffer.join('<br />')}</blockquote>`,
-      )
-      quoteBuffer = []
-    }
-  }
-
-  for (const rawLine of lines) {
-    const line = rawLine.replace(/\t/g, '  ')
-
-    if (line.startsWith('```')) {
-      blankStreak = 0
-      if (!inCodeBlock) {
-        inCodeBlock = true
-        codeFence = line.slice(3).trim()
-        codeLines = []
-        flushList()
-        flushOrderedList()
-        flushQuote()
-      } else {
-        const code = escapeHtml(codeLines.join('\n'))
-        const langClass = codeFence ? ` language-${codeFence}` : ''
-        parts.push(
-          `<pre class="${MARKDOWN_CLASSES.pre}"><code class="${langClass.trim()}">${code}</code></pre>`,
-        )
-        inCodeBlock = false
-        codeFence = ''
-        codeLines = []
-      }
-      continue
-    }
-
-    if (inCodeBlock) {
-      codeLines.push(rawLine)
-      continue
-    }
-
-    const trimmed = line.trim()
-
-    if (trimmed === '') {
-      blankStreak += 1
-      flushList()
-      flushOrderedList()
-      flushQuote()
-      if (blankStreak > 1) {
-        parts.push(blankLineSpacer)
-      }
-      continue
-    }
-    blankStreak = 0
-
-    if (trimmed === '---') {
-      flushList()
-      flushOrderedList()
-      flushQuote()
-      parts.push(`<hr class="${MARKDOWN_CLASSES.hr}" />`)
-      continue
-    }
-
-    const headingMatch = /^(#{1,6})\s+(.*)$/.exec(trimmed)
-    if (headingMatch) {
-      flushList()
-      flushOrderedList()
-      flushQuote()
-      const level = headingMatch[1].length
-      const levelClass =
-        MARKDOWN_CLASSES[`h${level}` as keyof typeof MARKDOWN_CLASSES] ??
-        MARKDOWN_CLASSES.h3
-      parts.push(
-        `<h${level} class="${levelClass}">${formatInline(headingMatch[2])}</h${level}>`,
-      )
-      continue
-    }
-
-    const quoteMatch = /^>\s?(.*)$/.exec(trimmed)
-    if (quoteMatch) {
-      flushList()
-      flushOrderedList()
-      quoteBuffer.push(formatInline(quoteMatch[1]))
-      continue
-    }
-
-    const unorderedMatch = /^[-*+]\s+(.*)$/.exec(trimmed)
-    if (unorderedMatch) {
-      flushOrderedList()
-      flushQuote()
-      listBuffer.push(
-        `<li class="${MARKDOWN_CLASSES.li}">${formatInline(unorderedMatch[1])}</li>`,
-      )
-      continue
-    }
-
-    const orderedMatch = /^\d+\.\s+(.*)$/.exec(trimmed)
-    if (orderedMatch) {
-      flushList()
-      flushQuote()
-      orderedListBuffer.push(
-        `<li class="${MARKDOWN_CLASSES.li}">${formatInline(orderedMatch[1])}</li>`,
-      )
-      continue
-    }
-
-    flushList()
-    flushOrderedList()
-    flushQuote()
-    parts.push(`<p class="${MARKDOWN_CLASSES.p}">${formatInline(trimmed)}</p>`)
-  }
-
-  if (inCodeBlock) {
-    const code = escapeHtml(codeLines.join('\n'))
-    const langClass = codeFence ? ` language-${codeFence}` : ''
-    parts.push(
-      `<pre class="${MARKDOWN_CLASSES.pre}"><code class="${langClass.trim()}">${code}</code></pre>`,
-    )
-  }
-
-  flushList()
-  flushOrderedList()
-  flushQuote()
-
-  return parts.join('\n')
-}
-
-function paginateContent(
-  container: HTMLElement,
-  pageContentHeight: number,
-  pageGap: number,
-  pagePadding: number,
-) {
-  const existingSpacers = container.querySelectorAll('[data-page-spacer]')
-  existingSpacers.forEach((node) => node.remove())
-
-  const article = container.querySelector('article')
-  if (!article) return
-  const containerRect = container.getBoundingClientRect()
-  const scale =
-    container.offsetWidth > 0 ? containerRect.width / container.offsetWidth : 1
-
-  let index = 0
-  while (index < article.children.length) {
-    const element = article.children[index] as HTMLElement
-    index += 1
-    if (!element.classList.contains('avoid-break')) continue
-
-    const elementRect = element.getBoundingClientRect()
-    const articleRect = article.getBoundingClientRect()
-    const top = (elementRect.top - articleRect.top) / scale
-    const height = elementRect.height / scale
-    const bottom = top + height
-
-    if (height > pageContentHeight) continue
-
-    const pageIndex = Math.floor(top / pageContentHeight)
-    const pageBottom = (pageIndex + 1) * pageContentHeight
-
-    if (bottom > pageBottom) {
-      const spacer = document.createElement('div')
-      spacer.setAttribute('data-page-spacer', 'true')
-      spacer.style.height = `${pageBottom - top + pageGap + pagePadding + 2}px`
-      article.insertBefore(spacer, element)
-      index -= 1
-    }
-  }
-
-  // Ensure visible bottom page gap so the last page footer padding is shown
-  if (pageGap > 0) {
-    const totalHeight = article.scrollHeight
-    const remainder = totalHeight % pageContentHeight
-    if (remainder !== 0) {
-      const spacer = document.createElement('div')
-      spacer.setAttribute('data-page-spacer', 'true')
-      spacer.style.height = `${
-        pageContentHeight - remainder + pageGap + pagePadding + 2
-      }px`
-      article.appendChild(spacer)
-    } else {
-      const spacer = document.createElement('div')
-      spacer.setAttribute('data-page-spacer', 'true')
-      spacer.style.height = `${pageGap + pagePadding + 2}px`
-      article.appendChild(spacer)
-    }
-  }
-}
-
 export default function Editor() {
   const [markdown, setMarkdown] = useState(DEFAULT_MARKDOWN)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
@@ -327,14 +54,16 @@ export default function Editor() {
   const [margin, setMargin] = useState(16)
   const [isExporting, setIsExporting] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
-  const [pdfReady, setPdfReady] = useState<boolean | null>(null)
   const lineNumbersRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<HTMLTextAreaElement | null>(null)
-  const previewRef = useRef<HTMLDivElement | null>(null)
   const previewViewportRef = useRef<HTMLDivElement | null>(null)
   const settingsRef = useRef<HTMLDivElement | null>(null)
   const settingsButtonRef = useRef<HTMLButtonElement | null>(null)
-  const [previewScale, setPreviewScale] = useState(1)
+  const pageConfig = PAGE_SIZES[pageSize]
+  const pxPerMm = 96 / 25.4
+  const pageWidthPx = Math.round(pageConfig.width * pxPerMm)
+  const pageHeightPx = Math.round(pageConfig.height * pxPerMm)
+  const marginPx = Math.round(margin * pxPerMm)
 
   useEffect(() => {
     const stored = window.localStorage.getItem('theme')
@@ -375,56 +104,7 @@ export default function Editor() {
     }
   }, [settingsOpen])
 
-  useEffect(() => {
-    let isMounted = true
-    const checkPdf = async () => {
-      try {
-        await Promise.all([import('html2canvas'), import('jspdf')])
-        if (isMounted) setPdfReady(true)
-      } catch (error) {
-        console.warn('PDF export dependencies missing', error)
-        if (isMounted) setPdfReady(false)
-      }
-    }
-    checkPdf()
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
-  const rendered = useMemo(() => renderMarkdown(markdown), [markdown])
   const lines = markdown.split('\n').length
-  const pageConfig = PAGE_SIZES[pageSize]
-  const pxPerMm = 96 / 25.4
-  const pageWidthPx = Math.round(pageConfig.width * pxPerMm)
-  const pageHeightPx = Math.round(pageConfig.height * pxPerMm)
-  const marginPx = Math.round(margin * pxPerMm)
-  const contentWidthPx = pageWidthPx - marginPx * 2
-  const pageGapPx = 12
-  const pageStridePx = pageHeightPx
-  const pageContentHeight = pageHeightPx - marginPx * 2
-
-  useEffect(() => {
-    const element = previewViewportRef.current
-    if (!element) return
-
-    const updateScale = () => {
-      const width = element.clientWidth
-      if (!width) return
-      const scale = Math.min(1, (width - 24) / pageWidthPx)
-      setPreviewScale(Number.isFinite(scale) ? scale : 1)
-    }
-
-    updateScale()
-    const observer = new ResizeObserver(updateScale)
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [pageWidthPx])
-
-  useLayoutEffect(() => {
-    if (!previewRef.current) return
-    paginateContent(previewRef.current, pageContentHeight, 0, marginPx)
-  }, [rendered, markdown, pageContentHeight, previewScale, isExporting])
 
   const handleScroll = () => {
     if (!lineNumbersRef.current || !editorRef.current) return
@@ -437,113 +117,40 @@ export default function Editor() {
 
   const handleDownload = async () => {
     if (isExporting) return
-    if (!previewRef.current) return
     setExportError(null)
-    const size = PAGE_SIZES[pageSize]
     const safeName =
       filename.trim().replace(/[\\/:*?"<>|]+/g, '-') || 'document'
-    const targetWidthPx = Math.round((size.width - margin * 2) * pxPerMm)
 
     const viewport = previewViewportRef.current
     const previousScroll = viewport?.scrollTop ?? 0
     setIsExporting(true)
     try {
-      if (pdfReady === false) {
-        throw new Error(
-          'PDF export dependencies are not installed. Run pnpm install and restart the dev server.',
-        )
-      }
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf'),
-      ])
-
-      await new Promise((resolve) => setTimeout(resolve, 50))
-
-      const exportRoot = document.createElement('div')
-      exportRoot.style.position = 'fixed'
-      exportRoot.style.left = '-10000px'
-      exportRoot.style.top = '0'
-      exportRoot.style.width = `${targetWidthPx}px`
-      exportRoot.style.padding = '0'
-      exportRoot.style.background = '#ffffff'
-      exportRoot.style.zIndex = '-1'
-
-      const exportContainer = document.createElement('div')
-      exportContainer.style.width = `${Math.round(pageConfig.width * pxPerMm)}px`
-      exportContainer.style.padding = `${Math.round(margin * pxPerMm)}px`
-      exportContainer.innerHTML = `<article class="max-w-none">${rendered}</article>`
-
-      exportRoot.appendChild(exportContainer)
-      document.body.appendChild(exportRoot)
-
-      await new Promise((resolve) => requestAnimationFrame(resolve))
-      paginateContent(exportContainer, pageContentHeight, 0, marginPx)
-
-      const canvas = await html2canvas(exportContainer, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        width: exportContainer.scrollWidth,
-        height: exportContainer.scrollHeight,
-        windowWidth: exportContainer.scrollWidth,
-        windowHeight: exportContainer.scrollHeight,
-      })
-      document.body.removeChild(exportRoot)
-
-      const imgData = canvas.toDataURL('image/png', 1.0)
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: [size.width, size.height],
+      const response = await fetch('/export-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          markdown,
+          pageSize,
+          margin,
+          filename: safeName,
+        }),
       })
 
-      const pageWidth = size.width
-      const pageHeight = size.height
-      const imgWidth = canvas.width
-      const imgHeight = canvas.height
-      const pixelsPerMm = imgWidth / pageWidth
-      const pageHeightPx = Math.round(pageHeight * pixelsPerMm)
-
-      let offsetY = 0
-      while (offsetY < imgHeight) {
-        const sliceHeight = Math.min(pageHeightPx, imgHeight - offsetY)
-        const sliceCanvas = document.createElement('canvas')
-        sliceCanvas.width = imgWidth
-        sliceCanvas.height = sliceHeight
-        const ctx = sliceCanvas.getContext('2d')
-        if (!ctx) break
-        ctx.drawImage(
-          canvas,
-          0,
-          offsetY,
-          imgWidth,
-          sliceHeight,
-          0,
-          0,
-          imgWidth,
-          sliceHeight,
-        )
-
-        const sliceData = sliceCanvas.toDataURL('image/png', 1.0)
-        const sliceHeightMm = sliceHeight / pixelsPerMm
-        pdf.addImage(
-          sliceData,
-          'PNG',
-          0,
-          0,
-          pageWidth,
-          sliceHeightMm,
-          undefined,
-          'FAST',
-        )
-
-        offsetY += sliceHeight
-        if (offsetY < imgHeight) {
-          pdf.addPage()
-        }
+      if (!response.ok) {
+        const message = await response.text()
+        throw new Error(message || 'PDF export failed.')
       }
 
-      pdf.save(`${safeName}.pdf`)
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${safeName}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'PDF export failed.'
@@ -641,27 +248,55 @@ export default function Editor() {
                 <button
                   type="button"
                   onClick={handleDownload}
+                  disabled={isExporting}
                   className="inline-flex items-center gap-2 rounded-xl bg-[#0f172a] px-5 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(15,23,42,0.35)] transition hover:-translate-y-0.5 dark:bg-white dark:text-[#0f172a]"
                 >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[#334155] bg-[#1f2937] text-white dark:border-[#e2e8f0] dark:bg-white dark:text-[#0f172a]">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-4 w-4"
-                      aria-hidden="true"
-                    >
-                      <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-                      <path d="M14 2v6h6" />
-                      <path d="M7.5 16h9" />
-                      <path d="M7.5 12.5h4.5" />
-                    </svg>
-                  </span>
-                  Download
+                  {isExporting ? (
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[#334155] bg-[#1f2937] text-white dark:border-[#e2e8f0] dark:bg-white dark:text-[#0f172a]">
+                      <svg
+                        className="h-4 w-4 animate-spin"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="9"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          opacity="0.25"
+                        />
+                        <path
+                          d="M21 12a9 9 0 0 0-9-9"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </span>
+                  ) : (
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[#334155] bg-[#1f2937] text-white dark:border-[#e2e8f0] dark:bg-white dark:text-[#0f172a]">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-4 w-4"
+                        aria-hidden="true"
+                      >
+                        <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                        <path d="M14 2v6h6" />
+                        <path d="M7.5 16h9" />
+                        <path d="M7.5 12.5h4.5" />
+                      </svg>
+                    </span>
+                  )}
+                  {isExporting ? 'Exporting' : 'Download'}
                 </button>
               </>
             }
@@ -793,55 +428,19 @@ export default function Editor() {
               ref={previewViewportRef}
               className="flex-1 overflow-auto overflow-x-hidden bg-[#f1f5f9] p-6 dark:bg-[#0f172a]"
             >
-              <div className="flex justify-center">
-                <div
-                  className="origin-top"
-                  style={{
-                    width: pageWidthPx,
-                    transform: `scale(${previewScale})`,
-                  }}
-                >
-                  <div
-                    className="relative rounded-2xl bg-white text-[#0f172a] shadow-[0_18px_35px_rgba(15,23,42,0.18)]"
-                    style={{
-                      minHeight: pageHeightPx,
-                      paddingTop: marginPx,
-                      paddingBottom: marginPx,
-                      paddingLeft: marginPx,
-                      paddingRight: marginPx,
-                      backgroundImage: [
-                        `linear-gradient(to bottom, #ffffff 0px, #ffffff ${pageHeightPx}px, transparent ${pageHeightPx}px, transparent ${pageStridePx}px)`,
-                        `linear-gradient(to bottom, rgba(15,23,42,0.08) 0px, rgba(15,23,42,0.08) ${marginPx}px, transparent ${marginPx}px, transparent ${pageHeightPx - marginPx}px, rgba(15,23,42,0.08) ${pageHeightPx - marginPx}px, rgba(15,23,42,0.08) ${pageHeightPx}px, transparent ${pageHeightPx}px, transparent ${pageStridePx}px)`,
-                        `linear-gradient(to bottom, transparent ${pageHeightPx - pageGapPx}px, rgba(15,23,42,0.65) ${pageHeightPx - pageGapPx}px, rgba(15,23,42,0.65) ${pageHeightPx}px, transparent ${pageHeightPx}px, transparent ${pageStridePx}px)`,
-                      ].join(', '),
-                      backgroundSize: `100% ${pageStridePx}px`,
-                      backgroundRepeat: 'repeat',
-                    }}
-                  >
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-0"
-                      style={{
-                        backgroundImage: `repeating-linear-gradient(to bottom, transparent 0px, transparent ${pageHeightPx - pageGapPx}px, rgba(15,23,42,0.6) ${pageHeightPx - pageGapPx}px, rgba(15,23,42,0.6) ${pageHeightPx}px, transparent ${pageHeightPx}px, transparent ${pageStridePx}px)`,
-                        backgroundSize: `100% ${pageStridePx}px`,
-                      }}
-                    />
-                    <div
-                      ref={previewRef}
-                      style={{
-                        width: contentWidthPx,
-                        paddingTop: 1,
-                        marginTop: -1,
-                      }}
-                    >
-                      <article
-                        className="max-w-none"
-                        // eslint-disable-next-line react/no-danger
-                        dangerouslySetInnerHTML={{ __html: rendered }}
-                      />
-                    </div>
-                  </div>
-                </div>
+              <div
+                className="rounded-2xl bg-white text-[#0f172a] shadow-[0_18px_35px_rgba(15,23,42,0.18)]"
+                style={{
+                  width: pageWidthPx,
+                  maxWidth: '100%',
+                  minHeight: pageHeightPx,
+                  padding: marginPx,
+                  border: '1px solid #e2e8f0',
+                }}
+              >
+                <article className="max-w-none">
+                  <MarkdownRenderer markdown={markdown} />
+                </article>
               </div>
             </div>
           </section>
