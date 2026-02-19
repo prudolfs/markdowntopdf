@@ -531,11 +531,15 @@ export default function Editor() {
             onEmojiToggle={() => {
               setEmojiOpen((prev) => !prev)
               setMarkdownOpen(false)
+              setSaveOpen(false)
+              setLoadOpen(false)
               setRefreshOpen(false)
             }}
             onMarkdownToggle={() => {
               setMarkdownOpen((prev) => !prev)
               setEmojiOpen(false)
+              setSaveOpen(false)
+              setLoadOpen(false)
               setRefreshOpen(false)
             }}
             onEmojiSelect={(emoji) => insertAtCursor(emoji)}

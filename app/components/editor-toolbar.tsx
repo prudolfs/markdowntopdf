@@ -113,8 +113,12 @@ const EMOJI_OPTIONS = [
 ]
 
 const MARKDOWN_OPTIONS = [
-  { label: 'Heading', value: '\n## Heading\n', cursorOffset: 0 },
-  { label: 'Heading 3', value: '\n### Heading\n', cursorOffset: 0 },
+  { label: 'Heading 1', value: '\n# Heading 1\n', cursorOffset: -1 },
+  { label: 'Heading 2', value: '\n## Heading 2\n', cursorOffset: -1 },
+  { label: 'Heading 3', value: '\n### Heading 3\n', cursorOffset: -1 },
+  { label: 'Heading 4', value: '\n#### Heading 4\n', cursorOffset: -1 },
+  { label: 'Heading 5', value: '\n##### Heading 5\n', cursorOffset: -1 },
+  { label: 'Heading 6', value: '\n###### Heading 6\n', cursorOffset: -1 },
   { label: 'Bold', value: '**bold**', cursorOffset: -2 },
   { label: 'Italic', value: '*italic*', cursorOffset: -1 },
   { label: 'Bold + Italic', value: '***bold italic***', cursorOffset: -3 },

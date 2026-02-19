@@ -88,7 +88,9 @@ export function EditorPanel({
 
   const toggleDocSelection = (name: string) => {
     setSelectedDocs((prev) =>
-      prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name],
+      prev.includes(name)
+        ? prev.filter((item) => item !== name)
+        : [...prev, name],
     )
   }
 
