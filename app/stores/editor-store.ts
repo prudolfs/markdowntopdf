@@ -1,0 +1,46 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+export const DEFAULT_MARKDOWN = `# Markdown to PDF
+
+Write Markdown on the left. See a live preview on the right.
+
+## Quick tips
+- **Bold** and *italic*
+- Inline \`code\`
+- Links: [React Router](https://reactrouter.com)
+- Quotes:
+  > This preview updates as you type.
+
+## Code block
+\`\`\`ts
+type Document = {
+  title: string
+  updatedAt: string
+}
+\`\`\`
+
+## Checklist
+1. Draft the content
+2. Review the preview
+3. Download as PDF
+`
+
+type EditorState = {
+  markdown: string
+  setMarkdown: (markdown: string) => void
+  resetMarkdown: () => void
+}
+
+export const useEditorStore = create<EditorState>()(
+  persist(
+    (set) => ({
+      markdown: DEFAULT_MARKDOWN,
+      setMarkdown: (markdown) => set({ markdown }),
+      resetMarkdown: () => set({ markdown: DEFAULT_MARKDOWN }),
+    }),
+    {
+      name: 'markdown-editor',
+    },
+  ),
+)

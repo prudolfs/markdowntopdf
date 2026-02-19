@@ -1,33 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import { MarkdownRenderer } from '../components/markdown-renderer'
-import { EditorToolbar } from '../components/editor-toolbar'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { EditorPanel } from '../components/editor-panel'
+import { PreviewPanel } from '../components/preview-panel'
 import { AppHeader } from '../components/app-header'
 import type { Route } from './+types/editor'
-
-const DEFAULT_MARKDOWN = `# Markdown to PDF
-
-Write Markdown on the left. See a live preview on the right.
-
-## Quick tips
-- **Bold** and *italic*
-- Inline \`code\`
-- Links: [React Router](https://reactrouter.com)
-- Quotes:
-  > This preview updates as you type.
-
-## Code block
-\`\`\`ts
-type Document = {
-  title: string
-  updatedAt: string
-}
-\`\`\`
-
-## Checklist
-1. Draft the content
-2. Review the preview
-3. Download as PDF
-`
+import { useEditorStore } from '../stores/editor-store'
 
 const PAGE_SIZES = {
   a4: { label: 'A4', width: 210, height: 297 },
@@ -49,7 +25,9 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Editor() {
-  const [markdown, setMarkdown] = useState(DEFAULT_MARKDOWN)
+  const markdown = useEditorStore((state) => state.markdown)
+  const setMarkdown = useEditorStore((state) => state.setMarkdown)
+  const resetMarkdown = useEditorStore((state) => state.resetMarkdown)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [filename, setFilename] = useState('document')
@@ -59,6 +37,14 @@ export default function Editor() {
   const [exportError, setExportError] = useState<string | null>(null)
   const [emojiOpen, setEmojiOpen] = useState(false)
   const [markdownOpen, setMarkdownOpen] = useState(false)
+  const [refreshOpen, setRefreshOpen] = useState(false)
+  const [saveOpen, setSaveOpen] = useState(false)
+  const [loadOpen, setLoadOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [saveName, setSaveName] = useState('')
+  const [savedDocs, setSavedDocs] = useState<
+    Array<{ name: string; updatedAt: string; markdown: string }>
+  >([])
   const lineNumbersRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<HTMLTextAreaElement | null>(null)
   const previewViewportRef = useRef<HTMLDivElement | null>(null)
@@ -112,7 +98,16 @@ export default function Editor() {
   }, [theme])
 
   useEffect(() => {
-    if (!settingsOpen && !emojiOpen && !markdownOpen) return
+    if (
+      !settingsOpen &&
+      !emojiOpen &&
+      !markdownOpen &&
+      !refreshOpen &&
+      !saveOpen &&
+      !loadOpen &&
+      !deleteOpen
+    )
+      return
 
     const updatePosition = () => {
       const button = settingsButtonRef.current
@@ -146,9 +141,15 @@ export default function Editor() {
       }
       const toolbar = document.querySelector('[data-editor-toolbar]')
       if (toolbar?.contains(target)) return
+      const popover = document.querySelector('[data-editor-popover]')
+      if (popover?.contains(target)) return
       setSettingsOpen(false)
       setEmojiOpen(false)
       setMarkdownOpen(false)
+      setRefreshOpen(false)
+      setSaveOpen(false)
+      setLoadOpen(false)
+      setDeleteOpen(false)
     }
 
     document.addEventListener('mousedown', handlePointerDown)
@@ -159,9 +160,63 @@ export default function Editor() {
         window.removeEventListener('scroll', updatePosition, true)
       }
     }
-  }, [settingsOpen, emojiOpen, markdownOpen])
+  }, [
+    settingsOpen,
+    emojiOpen,
+    markdownOpen,
+    refreshOpen,
+    saveOpen,
+    loadOpen,
+    deleteOpen,
+  ])
 
   const lines = markdown.split('\n').length
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const raw = window.localStorage.getItem('markdown-saves')
+    if (!raw) return
+    try {
+      const parsed = JSON.parse(raw) as Array<{
+        name: string
+        updatedAt: string
+        markdown: string
+      }>
+      setSavedDocs(parsed)
+    } catch {
+      setSavedDocs([])
+    }
+  }, [])
+
+  const saveMarkdown = () => {
+    if (typeof window === 'undefined') return
+    const trimmed = saveName.trim()
+    if (!trimmed) return
+    const next = [
+      ...savedDocs.filter((doc) => doc.name !== trimmed),
+      {
+        name: trimmed,
+        updatedAt: new Date().toLocaleDateString(),
+        markdown,
+      },
+    ].sort((a, b) => a.name.localeCompare(b.name))
+    window.localStorage.setItem('markdown-saves', JSON.stringify(next))
+    setSavedDocs(next)
+    setSaveName('')
+  }
+
+  const loadMarkdown = (name: string) => {
+    const doc = savedDocs.find((item) => item.name === name)
+    if (!doc) return
+    setMarkdown(doc.markdown)
+  }
+
+  const deleteSelectedDocs = (names: string[]) => {
+    if (typeof window === 'undefined') return
+    const next = savedDocs.filter((doc) => !names.includes(doc.name))
+    window.localStorage.setItem('markdown-saves', JSON.stringify(next))
+    setSavedDocs(next)
+  }
 
   const handleScroll = () => {
     if (!lineNumbersRef.current || !editorRef.current) return
@@ -455,84 +510,97 @@ export default function Editor() {
         )}
 
         <main className="mx-auto mt-6 grid w-full max-w-[1400px] gap-6 px-6 pb-10 md:grid-cols-2">
-          <section className="relative flex h-[calc(100vh-220px)] flex-col overflow-hidden rounded-3xl border border-[#e2e8f0] bg-white shadow-[0_26px_60px_rgba(15,23,42,0.18)] backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:shadow-[0_26px_60px_rgba(2,6,23,0.6)]">
-            <div className="flex items-center justify-between border-b border-[#e2e8f0] px-6 py-4 text-xs uppercase tracking-[0.25em] text-[#64748b] dark:border-[#1e293b] dark:text-[#94a3b8]">
-              Editor
-              <span className="text-[10px] font-normal tracking-[0.2em]">
-                Realtime
-              </span>
-            </div>
-            <div
-              className="grid min-h-0 flex-1 grid-cols-[56px_1fr]"
-              style={{ fontFamily: 'var(--font-mono)' }}
-            >
-              <div
-                ref={lineNumbersRef}
-                className="overflow-hidden border-r border-[#e2e8f0] bg-[#f1f5f9] py-4 text-right text-xs text-[#64748b] dark:border-[#1e293b] dark:bg-[#020617]"
-              >
-                {Array.from({ length: lines }, (_, index) => (
-                  <span key={index} className="block px-4 leading-7">
-                    {index + 1}
-                  </span>
-                ))}
-              </div>
-              <textarea
-                ref={editorRef}
-                value={markdown}
-                onChange={(event) => setMarkdown(event.target.value)}
-                onScroll={handleScroll}
-                spellCheck={false}
-                className="h-full w-full resize-none bg-white px-6 py-4 text-sm leading-7 text-[#0f172a] outline-none selection:bg-sky-200 selection:text-slate-900 dark:bg-[#020617] dark:text-[#f1f5f9]"
-                style={{ fontFamily: 'var(--font-mono)' }}
-              />
-            </div>
-            <EditorToolbar
-              emojiOpen={emojiOpen}
-              markdownOpen={markdownOpen}
-              onEmojiToggle={() => {
-                setEmojiOpen((prev) => !prev)
-                setMarkdownOpen(false)
-              }}
-              onMarkdownToggle={() => {
-                setMarkdownOpen((prev) => !prev)
-                setEmojiOpen(false)
-              }}
-              onEmojiSelect={(emoji) => insertAtCursor(emoji)}
-              onMarkdownInsert={(value, cursorOffset) =>
-                insertAtCursor(value, cursorOffset ?? 0)
-              }
-              onEmojiClose={() => setEmojiOpen(false)}
-              onMarkdownClose={() => setMarkdownOpen(false)}
-            />
-          </section>
+          <EditorPanel
+            markdown={markdown}
+            lines={lines}
+            emojiOpen={emojiOpen}
+            markdownOpen={markdownOpen}
+            refreshOpen={refreshOpen}
+            saveOpen={saveOpen}
+            loadOpen={loadOpen}
+            deleteOpen={deleteOpen}
+            savedDocs={savedDocs.map((doc) => ({
+              name: doc.name,
+              updatedAt: doc.updatedAt,
+            }))}
+            saveName={saveName}
+            editorRef={editorRef}
+            lineNumbersRef={lineNumbersRef}
+            onScroll={handleScroll}
+            onMarkdownChange={setMarkdown}
+            onEmojiToggle={() => {
+              setEmojiOpen((prev) => !prev)
+              setMarkdownOpen(false)
+              setRefreshOpen(false)
+            }}
+            onMarkdownToggle={() => {
+              setMarkdownOpen((prev) => !prev)
+              setEmojiOpen(false)
+              setRefreshOpen(false)
+            }}
+            onEmojiSelect={(emoji) => insertAtCursor(emoji)}
+            onMarkdownInsert={(value, cursorOffset) =>
+              insertAtCursor(value, cursorOffset ?? 0)
+            }
+            onEmojiClose={() => setEmojiOpen(false)}
+            onMarkdownClose={() => setMarkdownOpen(false)}
+            onRefreshToggle={() => {
+              setRefreshOpen((prev) => !prev)
+              setEmojiOpen(false)
+              setMarkdownOpen(false)
+              setSaveOpen(false)
+              setLoadOpen(false)
+              setDeleteOpen(false)
+            }}
+            onRefreshClose={() => setRefreshOpen(false)}
+            onRefreshConfirm={() => {
+              resetMarkdown()
+              useEditorStore.persist.clearStorage()
+              setRefreshOpen(false)
+            }}
+            onSaveToggle={() => {
+              setSaveOpen((prev) => !prev)
+              setLoadOpen(false)
+              setEmojiOpen(false)
+              setMarkdownOpen(false)
+              setRefreshOpen(false)
+              setDeleteOpen(false)
+            }}
+            onSaveClose={() => setSaveOpen(false)}
+            onSaveNameChange={setSaveName}
+            onSaveConfirm={() => {
+              saveMarkdown()
+              setSaveOpen(false)
+            }}
+            onLoadToggle={() => {
+              setLoadOpen((prev) => !prev)
+              setSaveOpen(false)
+              setEmojiOpen(false)
+              setMarkdownOpen(false)
+              setRefreshOpen(false)
+              setDeleteOpen(false)
+            }}
+            onLoadClose={() => {
+              setLoadOpen(false)
+              setDeleteOpen(false)
+            }}
+            onLoadSelect={(name) => loadMarkdown(name)}
+            onDeleteToggle={() => setDeleteOpen((prev) => !prev)}
+            onDeleteClose={() => setDeleteOpen(false)}
+            onDeleteConfirm={(names) => {
+              deleteSelectedDocs(names)
+              setDeleteOpen(false)
+              setLoadOpen(false)
+            }}
+          />
 
-          <section className="flex h-[calc(100vh-220px)] flex-col overflow-hidden rounded-3xl border border-[#e2e8f0] bg-white shadow-[0_26px_60px_rgba(15,23,42,0.18)] backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:shadow-[0_26px_60px_rgba(2,6,23,0.6)]">
-            <div className="flex items-center justify-between border-b border-[#e2e8f0] px-6 py-4 text-xs uppercase tracking-[0.25em] text-[#64748b] dark:border-[#1e293b] dark:text-[#94a3b8]">
-              Preview
-              <span className="text-[10px] font-normal tracking-[0.2em]">
-                PDF Ready
-              </span>
-            </div>
-            <div
-              ref={previewViewportRef}
-              className="flex-1 overflow-auto overflow-x-hidden bg-[#f1f5f9] p-6 dark:bg-[#0f172a]"
-            >
-              <div
-                className="rounded-2xl bg-white text-[#0f172a] shadow-[0_18px_35px_rgba(15,23,42,0.18)]"
-                style={{
-                  width: pageWidthPx,
-                  maxWidth: '100%',
-                  minHeight: pageHeightPx,
-                  padding: marginPx,
-                  border: '1px solid #e2e8f0',
-                }}
-              >
-                <article className="max-w-none">
-                  <MarkdownRenderer markdown={markdown} />
-                </article>
-              </div>
-            </div>
-          </section>
+          <PreviewPanel
+            markdown={markdown}
+            previewViewportRef={previewViewportRef}
+            pageWidthPx={pageWidthPx}
+            pageHeightPx={pageHeightPx}
+            marginPx={marginPx}
+          />
         </main>
       </div>
     </div>
