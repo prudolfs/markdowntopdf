@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MarkdownRenderer } from '../components/markdown-renderer'
+import { EditorToolbar } from '../components/editor-toolbar'
 import { AppHeader } from '../components/app-header'
 import type { Route } from './+types/editor'
 
@@ -56,6 +57,8 @@ export default function Editor() {
   const [margin, setMargin] = useState(16)
   const [isExporting, setIsExporting] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
+  const [emojiOpen, setEmojiOpen] = useState(false)
+  const [markdownOpen, setMarkdownOpen] = useState(false)
   const lineNumbersRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<HTMLTextAreaElement | null>(null)
   const previewViewportRef = useRef<HTMLDivElement | null>(null)
@@ -71,6 +74,20 @@ export default function Editor() {
   const pageWidthPx = Math.round(pageConfig.width * pxPerMm)
   const pageHeightPx = Math.round(pageConfig.height * pxPerMm)
   const marginPx = Math.round(margin * pxPerMm)
+
+  const insertAtCursor = (value: string, cursorOffset = 0) => {
+    const editor = editorRef.current
+    if (!editor) return
+    const start = editor.selectionStart ?? editor.value.length
+    const end = editor.selectionEnd ?? start
+    const nextValue = `${editor.value.slice(0, start)}${value}${editor.value.slice(end)}`
+    setMarkdown(nextValue)
+    requestAnimationFrame(() => {
+      editor.focus()
+      const nextPos = Math.max(0, start + value.length + cursorOffset)
+      editor.setSelectionRange(nextPos, nextPos)
+    })
+  }
 
   useEffect(() => {
     const stored = window.localStorage.getItem('theme')
@@ -95,7 +112,7 @@ export default function Editor() {
   }, [theme])
 
   useEffect(() => {
-    if (!settingsOpen) return
+    if (!settingsOpen && !emojiOpen && !markdownOpen) return
 
     const updatePosition = () => {
       const button = settingsButtonRef.current
@@ -112,25 +129,37 @@ export default function Editor() {
       setSettingsPosition({ top, left, pointerLeft })
     }
 
-    updatePosition()
-    window.addEventListener('resize', updatePosition)
-    window.addEventListener('scroll', updatePosition, true)
+    if (settingsOpen) {
+      updatePosition()
+      window.addEventListener('resize', updatePosition)
+      window.addEventListener('scroll', updatePosition, true)
+    }
 
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as Node | null
       if (!target) return
-      if (settingsRef.current?.contains(target)) return
-      if (settingsButtonRef.current?.contains(target)) return
+      if (
+        settingsRef.current?.contains(target) ||
+        settingsButtonRef.current?.contains(target)
+      ) {
+        return
+      }
+      const toolbar = document.querySelector('[data-editor-toolbar]')
+      if (toolbar?.contains(target)) return
       setSettingsOpen(false)
+      setEmojiOpen(false)
+      setMarkdownOpen(false)
     }
 
     document.addEventListener('mousedown', handlePointerDown)
     return () => {
       document.removeEventListener('mousedown', handlePointerDown)
-      window.removeEventListener('resize', updatePosition)
-      window.removeEventListener('scroll', updatePosition, true)
+      if (settingsOpen) {
+        window.removeEventListener('resize', updatePosition)
+        window.removeEventListener('scroll', updatePosition, true)
+      }
     }
-  }, [settingsOpen])
+  }, [settingsOpen, emojiOpen, markdownOpen])
 
   const lines = markdown.split('\n').length
 
@@ -426,7 +455,7 @@ export default function Editor() {
         )}
 
         <main className="mx-auto mt-6 grid w-full max-w-[1400px] gap-6 px-6 pb-10 md:grid-cols-2">
-          <section className="flex h-[calc(100vh-220px)] flex-col overflow-hidden rounded-3xl border border-[#e2e8f0] bg-white shadow-[0_26px_60px_rgba(15,23,42,0.18)] backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:shadow-[0_26px_60px_rgba(2,6,23,0.6)]">
+          <section className="relative flex h-[calc(100vh-220px)] flex-col overflow-hidden rounded-3xl border border-[#e2e8f0] bg-white shadow-[0_26px_60px_rgba(15,23,42,0.18)] backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:shadow-[0_26px_60px_rgba(2,6,23,0.6)]">
             <div className="flex items-center justify-between border-b border-[#e2e8f0] px-6 py-4 text-xs uppercase tracking-[0.25em] text-[#64748b] dark:border-[#1e293b] dark:text-[#94a3b8]">
               Editor
               <span className="text-[10px] font-normal tracking-[0.2em]">
@@ -457,6 +486,24 @@ export default function Editor() {
                 style={{ fontFamily: 'var(--font-mono)' }}
               />
             </div>
+            <EditorToolbar
+              emojiOpen={emojiOpen}
+              markdownOpen={markdownOpen}
+              onEmojiToggle={() => {
+                setEmojiOpen((prev) => !prev)
+                setMarkdownOpen(false)
+              }}
+              onMarkdownToggle={() => {
+                setMarkdownOpen((prev) => !prev)
+                setEmojiOpen(false)
+              }}
+              onEmojiSelect={(emoji) => insertAtCursor(emoji)}
+              onMarkdownInsert={(value, cursorOffset) =>
+                insertAtCursor(value, cursorOffset ?? 0)
+              }
+              onEmojiClose={() => setEmojiOpen(false)}
+              onMarkdownClose={() => setMarkdownOpen(false)}
+            />
           </section>
 
           <section className="flex h-[calc(100vh-220px)] flex-col overflow-hidden rounded-3xl border border-[#e2e8f0] bg-white shadow-[0_26px_60px_rgba(15,23,42,0.18)] backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:shadow-[0_26px_60px_rgba(2,6,23,0.6)]">
