@@ -2,17 +2,173 @@
 
 @theme {
   --font-sans:
-    "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    "Sora", "Segoe UI", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    "Source Code Pro", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+:root {
+  --bg: #0b1220;
+  --bg-2: #0f172a;
+  --ink: #e2e8f0;
+  --muted: #94a3b8;
+  --panel: #0f1b33;
+  --panel-2: #111e3b;
+  --border: rgba(148, 163, 184, 0.2);
+  --accent: #f59e0b;
+  --accent-2: #22d3ee;
+  --accent-3: #a855f7;
+  --paper: #f8fafc;
+  --paper-ink: #0f172a;
+  --shadow: 0 30px 70px rgba(2, 6, 23, 0.45);
+}
+
+.dark:root {
+  --bg: #070b13;
+  --bg-2: #0b1220;
 }
 
 html,
 body {
-  @apply bg-white text-slate-900 dark:bg-[#0b0d12] dark:text-slate-100;
+  @apply min-h-full;
+  font-family: var(--font-sans);
+  background: radial-gradient(circle at 20% 20%, #1e293b 0%, transparent 55%),
+    radial-gradient(circle at 80% 0%, rgba(34, 211, 238, 0.2) 0%, transparent 50%),
+    linear-gradient(160deg, var(--bg), var(--bg-2));
+  color: var(--ink);
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
+}
+
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.app-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease both;
+}
+
+.fade-in.delay-1 {
+  animation-delay: 0.1s;
+}
+
+.fade-in.delay-2 {
+  animation-delay: 0.2s;
+}
+
+.fade-in.delay-3 {
+  animation-delay: 0.3s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.topbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0;
+}
+
+.brand-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 18px 10px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.brand-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.action-btn,
+.action-btn-ghost {
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.action-btn {
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  color: #0b1220;
+  box-shadow: 0 12px 30px rgba(34, 211, 238, 0.35);
+}
+
+.action-btn-ghost {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+
+.action-btn:hover,
+.action-btn-ghost:hover {
+  transform: translateY(-2px);
+}
+
+.panel {
+  background: linear-gradient(160deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
 }
 
 .editor-shell {
@@ -20,25 +176,18 @@ body {
   grid-template-columns: 56px 1fr;
   flex: 1;
   min-height: 0;
-  font-family: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular,
-    SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+  font-family: var(--font-mono);
 }
 
 .editor-lines {
-  background: #0f172a;
-  color: #94a3b8;
+  background: #0a1328;
+  color: #64748b;
   padding: 16px 0;
-  border-right: 1px solid #1e293b;
+  border-right: 1px solid rgba(148, 163, 184, 0.2);
   font-size: 13px;
   line-height: 1.8;
   text-align: right;
   overflow: hidden;
-}
-
-.dark .editor-lines {
-  background: #0b1220;
-  border-right-color: #1f2937;
 }
 
 .editor-line {
@@ -53,30 +202,33 @@ body {
   padding: 16px 24px;
   border: none;
   outline: none;
-  background: #0f172a;
+  background: #0a1328;
   color: #e2e8f0;
   font-size: 14px;
   line-height: 1.8;
 }
 
-.dark .editor-input {
-  background: #0b1220;
-  color: #e5e7eb;
-}
-
 .editor-input::selection {
-  background: rgba(56, 189, 248, 0.4);
+  background: rgba(245, 158, 11, 0.4);
 }
 
 .preview-shell {
   flex: 1;
   overflow: auto;
   padding: 28px 32px 36px;
-  background: #f8fafc;
+  background: rgba(248, 250, 252, 0.04);
 }
 
-.dark .preview-shell {
-  background: #0f141f;
+.export-surface {
+  background: var(--paper);
+  color: var(--paper-ink);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+}
+
+.exporting .export-surface {
+  box-shadow: none;
 }
 
 .markdown {
@@ -110,11 +262,13 @@ body {
 
 .markdown p {
   margin: 12px 0;
+  color: #1e293b;
 }
 
 .markdown ul,
 .markdown ol {
   margin: 12px 0 12px 20px;
+  color: #1e293b;
 }
 
 .markdown li {
@@ -122,24 +276,16 @@ body {
 }
 
 .markdown a {
-  color: #0284c7;
+  color: #0ea5e9;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
-.dark .markdown a {
-  color: #38bdf8;
-}
-
 .markdown code {
-  background: rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.08);
   padding: 2px 6px;
   border-radius: 6px;
   font-size: 0.95em;
-}
-
-.dark .markdown code {
-  background: rgba(148, 163, 184, 0.2);
 }
 
 .markdown pre {
@@ -160,15 +306,67 @@ body {
 .markdown blockquote {
   margin: 16px 0;
   padding: 12px 16px;
-  border-left: 3px solid #38bdf8;
-  background: rgba(56, 189, 248, 0.08);
-  color: inherit;
+  border-left: 3px solid #0ea5e9;
+  background: rgba(14, 165, 233, 0.08);
+  color: #1e293b;
 }
 
 .markdown hr {
   border: none;
-  border-top: 1px solid rgba(148, 163, 184, 0.4);
+  border-top: 1px solid rgba(15, 23, 42, 0.2);
   margin: 24px 0;
+}
+
+.drawer {
+  position: absolute;
+  top: 80px;
+  right: 24px;
+  width: 280px;
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 18px;
+  z-index: 5;
+}
+
+.drawer h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.drawer label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.drawer input,
+.drawer select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(8, 15, 32, 0.8);
+  color: var(--ink);
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.drawer input[type='range'] {
+  padding: 0;
+}
+
+.drawer .field {
+  margin-bottom: 14px;
+}
+
+.drawer .hint {
+  font-size: 11px;
+  color: var(--muted);
 }
 
 @media print {
@@ -181,7 +379,8 @@ body {
   header,
   .editor-shell,
   .editor-lines,
-  .editor-input {
+  .editor-input,
+  .drawer {
     display: none !important;
   }
 
@@ -192,6 +391,11 @@ body {
 
   .preview-shell {
     background: white !important;
+    padding: 0 !important;
+  }
+
+  .export-surface {
+    box-shadow: none !important;
     padding: 0 !important;
   }
 

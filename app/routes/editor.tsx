@@ -1,3 +1,5 @@
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Route } from './+types/editor'
 
@@ -25,6 +27,13 @@ type Document = {
 2. Review the preview
 3. Download as PDF
 `
+
+const PAGE_SIZES = {
+  a4: { label: 'A4', width: 210, height: 297 },
+  letter: { label: 'Letter', width: 216, height: 279 },
+} as const
+
+type PageSize = keyof typeof PAGE_SIZES
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -199,9 +208,15 @@ function renderMarkdown(markdown: string) {
 
 export default function Editor() {
   const [markdown, setMarkdown] = useState(DEFAULT_MARKDOWN)
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [filename, setFilename] = useState('document')
+  const [pageSize, setPageSize] = useState<PageSize>('a4')
+  const [margin, setMargin] = useState(16)
+  const [isExporting, setIsExporting] = useState(false)
   const lineNumbersRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<HTMLTextAreaElement | null>(null)
+  const previewRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const stored = window.localStorage.getItem('theme')
@@ -235,87 +250,175 @@ export default function Editor() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
   }
 
-  const handleDownload = () => {
-    window.print()
+  const handleDownload = async () => {
+    if (!previewRef.current) return
+    const size = PAGE_SIZES[pageSize]
+    const safeName = filename.trim().replace(/[\\/:*?"<>|]+/g, '-') || 'document'
+
+    setIsExporting(true)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    const target = previewRef.current
+    const canvas = await html2canvas(target, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      width: target.scrollWidth,
+      height: target.scrollHeight,
+      windowWidth: target.scrollWidth,
+      windowHeight: target.scrollHeight,
+    })
+
+    const imgData = canvas.toDataURL('image/png', 1.0)
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [size.width, size.height],
+    })
+
+    const pageWidth = size.width - margin * 2
+    const pageHeight = size.height - margin * 2
+    const imgWidth = canvas.width
+    const imgHeight = canvas.height
+    const ratio = pageWidth / imgWidth
+    const scaledHeight = imgHeight * ratio
+
+    let position = 0
+    let remaining = scaledHeight
+
+    while (remaining > 0) {
+      const y = margin - position
+      pdf.addImage(imgData, 'PNG', margin, y, pageWidth, scaledHeight, undefined, 'FAST')
+      remaining -= pageHeight
+      position += pageHeight
+      if (remaining > 0) {
+        pdf.addPage()
+      }
+    }
+
+    pdf.save(`${safeName}.pdf`)
+    setIsExporting(false)
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#0b0d12] dark:text-slate-100">
-      <header className="print:hidden">
-        <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-6 px-6 py-5">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-sky-500 via-emerald-400 to-yellow-300" />
+    <div className={`app-shell ${isExporting ? 'exporting' : ''}`}>
+      <div className="relative mx-auto flex min-h-screen w-full max-w-[1400px] flex-col px-6 py-6">
+        <header className="topbar fade-in">
+          <div className="brand-chip">
+            <span className="brand-dot" />
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
                 Markdown Studio
               </p>
-              <h1 className="text-xl font-semibold">Markdown to PDF</h1>
+              <h1 className="text-lg font-semibold">Markdown to PDF</h1>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <a
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-              href="/"
-            >
+          <div className="action-row">
+            <a className="action-btn-ghost" href="/">
               Welcome
             </a>
             <button
               type="button"
-              onClick={toggleTheme}
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              onClick={() => setSettingsOpen((prev) => !prev)}
+              className="action-btn-ghost"
             >
-              {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+              Settings
             </button>
             <button
               type="button"
-              onClick={handleDownload}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl dark:bg-white dark:text-slate-900"
+              onClick={toggleTheme}
+              className="action-btn-ghost"
             >
-              Download PDF
+              {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            </button>
+            <button type="button" onClick={handleDownload} className="action-btn">
+              Export PDF
             </button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-6 pb-10 md:flex-row">
-        <section className="flex min-h-[70vh] flex-1 flex-col rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 text-sm font-medium uppercase tracking-[0.25em] text-slate-500 dark:border-slate-800 dark:text-slate-400">
-            Editor
-            <span className="text-xs font-normal tracking-[0.2em]">Realtime</span>
-          </div>
-          <div className="editor-shell">
-            <div ref={lineNumbersRef} className="editor-lines">
-              {Array.from({ length: lines }, (_, index) => (
-                <span key={index} className="editor-line">
-                  {index + 1}
-                </span>
-              ))}
+        {settingsOpen && (
+          <aside className="drawer fade-in" aria-label="Document settings">
+            <h3>Document settings</h3>
+            <div className="field">
+              <label htmlFor="filename">Filename</label>
+              <input
+                id="filename"
+                value={filename}
+                onChange={(event) => setFilename(event.target.value)}
+              />
+              <p className="hint">Saved as a PDF file.</p>
             </div>
-            <textarea
-              ref={editorRef}
-              value={markdown}
-              onChange={(event) => setMarkdown(event.target.value)}
-              onScroll={handleScroll}
-              spellCheck={false}
-              className="editor-input"
-            />
-          </div>
-        </section>
+            <div className="field">
+              <label htmlFor="page-size">Page size</label>
+              <select
+                id="page-size"
+                value={pageSize}
+                onChange={(event) => setPageSize(event.target.value as PageSize)}
+              >
+                {Object.entries(PAGE_SIZES).map(([key, value]) => (
+                  <option key={key} value={key}>
+                    {value.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="margin">Margins ({margin}mm)</label>
+              <input
+                id="margin"
+                type="range"
+                min={6}
+                max={30}
+                value={margin}
+                onChange={(event) => setMargin(Number(event.target.value))}
+              />
+              <p className="hint">Applied on every page.</p>
+            </div>
+          </aside>
+        )}
 
-        <section className="flex min-h-[70vh] flex-1 flex-col rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 text-sm font-medium uppercase tracking-[0.25em] text-slate-500 dark:border-slate-800 dark:text-slate-400">
-            Preview
-            <span className="text-xs font-normal tracking-[0.2em]">PDF Ready</span>
-          </div>
-          <div className="preview-shell">
-            <article
-              className="markdown"
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{ __html: rendered }}
-            />
-          </div>
-        </section>
-      </main>
+        <main className="relative grid gap-6 md:grid-cols-2">
+          <section className="panel fade-in delay-1 min-h-[70vh]">
+            <div className="panel-header">
+              Editor
+              <span className="text-xs font-normal tracking-[0.2em]">Realtime</span>
+            </div>
+            <div className="editor-shell">
+              <div ref={lineNumbersRef} className="editor-lines">
+                {Array.from({ length: lines }, (_, index) => (
+                  <span key={index} className="editor-line">
+                    {index + 1}
+                  </span>
+                ))}
+              </div>
+              <textarea
+                ref={editorRef}
+                value={markdown}
+                onChange={(event) => setMarkdown(event.target.value)}
+                onScroll={handleScroll}
+                spellCheck={false}
+                className="editor-input"
+              />
+            </div>
+          </section>
+
+          <section className="panel fade-in delay-2 min-h-[70vh]">
+            <div className="panel-header">
+              Preview
+              <span className="text-xs font-normal tracking-[0.2em]">PDF Ready</span>
+            </div>
+            <div className="preview-shell">
+              <div ref={previewRef} className="export-surface">
+                <article
+                  className="markdown"
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: rendered }}
+                />
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
     </div>
   )
 }
