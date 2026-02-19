@@ -254,19 +254,38 @@ export default function Editor() {
     if (!previewRef.current) return
     const size = PAGE_SIZES[pageSize]
     const safeName = filename.trim().replace(/[\\/:*?"<>|]+/g, '-') || 'document'
+    const pxPerMm = 96 / 25.4
+    const targetWidthPx = Math.round((size.width - margin * 2) * pxPerMm)
 
     setIsExporting(true)
     await new Promise((resolve) => setTimeout(resolve, 50))
 
     const target = previewRef.current
-    const canvas = await html2canvas(target, {
+    const exportRoot = document.createElement('div')
+    exportRoot.style.position = 'fixed'
+    exportRoot.style.left = '-10000px'
+    exportRoot.style.top = '0'
+    exportRoot.style.width = `${targetWidthPx}px`
+    exportRoot.style.padding = '0'
+    exportRoot.style.background = '#ffffff'
+    exportRoot.style.zIndex = '-1'
+
+    const clone = target.cloneNode(true) as HTMLElement
+    clone.style.width = `${targetWidthPx}px`
+    clone.style.padding = '0px'
+
+    exportRoot.appendChild(clone)
+    document.body.appendChild(exportRoot)
+
+    const canvas = await html2canvas(clone, {
       scale: 2,
       backgroundColor: '#ffffff',
-      width: target.scrollWidth,
-      height: target.scrollHeight,
-      windowWidth: target.scrollWidth,
-      windowHeight: target.scrollHeight,
+      width: clone.scrollWidth,
+      height: clone.scrollHeight,
+      windowWidth: clone.scrollWidth,
+      windowHeight: clone.scrollHeight,
     })
+    document.body.removeChild(exportRoot)
 
     const imgData = canvas.toDataURL('image/png', 1.0)
     const pdf = new jsPDF({
