@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { AppHeader } from '../components/app-header'
 import type { Route } from './+types/home'
 
 export function meta({}: Route.MetaArgs) {
@@ -8,45 +10,126 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem('theme')
+    if (stored === 'light' || stored === 'dark') {
+      setTheme(stored)
+      return
+    }
+    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
+    setTheme(prefersDark ? 'dark' : 'light')
+  }, [])
+
+  useEffect(() => {
+    const root = document.documentElement
+    if (theme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+    window.localStorage.setItem('theme', theme)
+  }, [theme])
+
   return (
-    <div className="app-shell">
-      <div className="relative mx-auto flex min-h-screen w-full max-w-[1200px] flex-col px-6 py-12">
-        <header className="topbar fade-in">
-          <div className="brand-chip">
-            <span className="brand-dot" />
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                Markdown Studio
-              </p>
-              <h1 className="text-lg font-semibold">Markdown to PDF</h1>
-            </div>
-          </div>
-          <div className="action-row">
-            <a className="action-btn-ghost" href="/editor">
-              Open Editor
-            </a>
-          </div>
-        </header>
+    <div className="relative min-h-screen overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.25),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(251,191,36,0.25),transparent_45%),radial-gradient(circle_at_50%_90%,rgba(167,139,250,0.25),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.2)_1px,transparent_1px)] bg-[size:52px_52px] opacity-30 dark:bg-[linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)]" />
+
+      <div className="relative flex min-h-screen w-full flex-col">
+        <div className="w-full pt-0">
+          <AppHeader
+            subtitle="Markdown Studio"
+            title="Markdown to PDF"
+            actions={
+              <>
+              <button
+                type="button"
+                onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+                aria-label="Toggle theme"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-900 shadow-lg transition hover:-translate-y-0.5 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100"
+              >
+                {theme === 'dark' ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M12 2v2" />
+                    <path d="M12 20v2" />
+                    <path d="M4.93 4.93l1.41 1.41" />
+                    <path d="M17.66 17.66l1.41 1.41" />
+                    <path d="M2 12h2" />
+                    <path d="M20 12h2" />
+                    <path d="M6.34 17.66l-1.41 1.41" />
+                    <path d="M19.07 4.93l-1.41 1.41" />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" />
+                  </svg>
+                )}
+              </button>
+                <a
+                  className="rounded-xl bg-gradient-to-r from-amber-400 to-cyan-400 px-5 py-2 text-sm font-semibold text-slate-950 shadow-[0_14px_30px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5"
+                  href="/editor"
+                >
+                  Open Editor
+                </a>
+              </>
+            }
+          />
+        </div>
+
+        <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 pb-12 pt-10">
 
         <main className="mt-16 grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
-          <section className="fade-in delay-1">
-            <h2 className="text-4xl font-semibold leading-tight">
-              Write in Markdown. Export pixel-perfect PDFs.
+          <section>
+            <p className="text-xs uppercase tracking-[0.4em] text-slate-500 dark:text-slate-400">
+              Build clean docs fast
+            </p>
+            <h2 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl">
+              Markdown writing with a studio-grade PDF export.
             </h2>
-            <p className="mt-5 max-w-xl text-lg text-slate-300">
+            <p className="mt-5 max-w-xl text-lg text-slate-600 dark:text-slate-300">
               A focused writing space with realtime preview, document controls, and
               a clean export pipeline. Designed for docs, specs, and handoffs.
             </p>
-            <div className="mt-8 action-row">
-              <a className="action-btn" href="/editor">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <a
+                className="rounded-full bg-gradient-to-r from-amber-400 to-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 shadow-[0_14px_30px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5"
+                href="/editor"
+              >
                 Start Writing
               </a>
-              <span className="action-btn-ghost">Realtime preview</span>
-              <span className="action-btn-ghost">PDF ready</span>
+              <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
+                Realtime preview
+              </span>
+              <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
+                PDF ready
+              </span>
             </div>
           </section>
 
-          <section className="fade-in delay-2 grid gap-4">
+          <section className="grid gap-4">
             {[
               {
                 title: 'Editor flow',
@@ -61,13 +144,19 @@ export default function Home() {
                 body: 'Generate a PDF file directly, no print dialog needed.',
               },
             ].map((item) => (
-              <div key={item.title} className="panel p-6">
+              <div
+                key={item.title}
+                className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_22px_50px_rgba(15,23,42,0.16)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-[0_22px_50px_rgba(2,6,23,0.55)]"
+              >
                 <h3 className="text-base font-semibold">{item.title}</h3>
-                <p className="mt-3 text-sm text-slate-300">{item.body}</p>
+                <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                  {item.body}
+                </p>
               </div>
             ))}
           </section>
         </main>
+        </div>
       </div>
     </div>
   )
