@@ -58,7 +58,10 @@ const MARKDOWN_CLASSES = {
 export function meta({}: Route.MetaArgs) {
   return [
     { title: 'Markdown to PDF Editor' },
-    { name: 'description', content: 'Realtime Markdown editor and PDF export.' },
+    {
+      name: 'description',
+      content: 'Realtime Markdown editor and PDF export.',
+    },
   ]
 }
 
@@ -113,7 +116,9 @@ function renderMarkdown(markdown: string) {
 
   const flushList = () => {
     if (listBuffer.length > 0) {
-      parts.push(`<ul class="${MARKDOWN_CLASSES.ul}">${listBuffer.join('')}</ul>`)
+      parts.push(
+        `<ul class="${MARKDOWN_CLASSES.ul}">${listBuffer.join('')}</ul>`,
+      )
       listBuffer = []
     }
   }
@@ -264,7 +269,9 @@ export default function Editor() {
       setTheme(stored)
       return
     }
-    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
+    const prefersDark = window.matchMedia?.(
+      '(prefers-color-scheme: dark)',
+    ).matches
     setTheme(prefersDark ? 'dark' : 'light')
   }, [])
 
@@ -293,7 +300,8 @@ export default function Editor() {
   const handleDownload = async () => {
     if (!previewRef.current) return
     const size = PAGE_SIZES[pageSize]
-    const safeName = filename.trim().replace(/[\\/:*?"<>|]+/g, '-') || 'document'
+    const safeName =
+      filename.trim().replace(/[\\/:*?"<>|]+/g, '-') || 'document'
     const pxPerMm = 96 / 25.4
     const targetWidthPx = Math.round((size.width - margin * 2) * pxPerMm)
 
@@ -346,7 +354,16 @@ export default function Editor() {
 
     while (remaining > 0) {
       const y = margin - position
-      pdf.addImage(imgData, 'PNG', margin, y, pageWidth, scaledHeight, undefined, 'FAST')
+      pdf.addImage(
+        imgData,
+        'PNG',
+        margin,
+        y,
+        pageWidth,
+        scaledHeight,
+        undefined,
+        'FAST',
+      )
       remaining -= pageHeight
       position += pageHeight
       if (remaining > 0) {
@@ -473,7 +490,10 @@ export default function Editor() {
             </h3>
             <div className="mt-4 space-y-4">
               <div>
-                <label htmlFor="filename" className="text-xs text-slate-500 dark:text-slate-400">
+                <label
+                  htmlFor="filename"
+                  className="text-xs text-slate-500 dark:text-slate-400"
+                >
                   Filename
                 </label>
                 <input
@@ -482,16 +502,23 @@ export default function Editor() {
                   onChange={(event) => setFilename(event.target.value)}
                   className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
                 />
-                <p className="mt-1 text-[11px] text-slate-500">Saved as a PDF file.</p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Saved as a PDF file.
+                </p>
               </div>
               <div>
-                <label htmlFor="page-size" className="text-xs text-slate-500 dark:text-slate-400">
+                <label
+                  htmlFor="page-size"
+                  className="text-xs text-slate-500 dark:text-slate-400"
+                >
                   Page size
                 </label>
                 <select
                   id="page-size"
                   value={pageSize}
-                  onChange={(event) => setPageSize(event.target.value as PageSize)}
+                  onChange={(event) =>
+                    setPageSize(event.target.value as PageSize)
+                  }
                   className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
                 >
                   {Object.entries(PAGE_SIZES).map(([key, value]) => (
@@ -502,7 +529,10 @@ export default function Editor() {
                 </select>
               </div>
               <div>
-                <label htmlFor="margin" className="text-xs text-slate-500 dark:text-slate-400">
+                <label
+                  htmlFor="margin"
+                  className="text-xs text-slate-500 dark:text-slate-400"
+                >
                   Margins ({margin}mm)
                 </label>
                 <input
@@ -514,7 +544,9 @@ export default function Editor() {
                   onChange={(event) => setMargin(Number(event.target.value))}
                   className="mt-3 w-full"
                 />
-                <p className="mt-1 text-[11px] text-slate-500">Applied on every page.</p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Applied on every page.
+                </p>
               </div>
             </div>
           </aside>
@@ -524,9 +556,14 @@ export default function Editor() {
           <section className="flex min-h-[70vh] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white/80 shadow-[0_26px_60px_rgba(15,23,42,0.18)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-[0_26px_60px_rgba(2,6,23,0.6)]">
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 text-xs uppercase tracking-[0.25em] text-slate-500 dark:border-slate-800 dark:text-slate-400">
               Editor
-              <span className="text-[10px] font-normal tracking-[0.2em]">Realtime</span>
+              <span className="text-[10px] font-normal tracking-[0.2em]">
+                Realtime
+              </span>
             </div>
-            <div className="grid min-h-0 flex-1 grid-cols-[56px_1fr]" style={{ fontFamily: 'var(--font-mono)' }}>
+            <div
+              className="grid min-h-0 flex-1 grid-cols-[56px_1fr]"
+              style={{ fontFamily: 'var(--font-mono)' }}
+            >
               <div
                 ref={lineNumbersRef}
                 className="overflow-hidden border-r border-slate-200 bg-slate-100 py-4 text-right text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950/80"
@@ -552,10 +589,15 @@ export default function Editor() {
           <section className="flex min-h-[70vh] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white/80 shadow-[0_26px_60px_rgba(15,23,42,0.18)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-[0_26px_60px_rgba(2,6,23,0.6)]">
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 text-xs uppercase tracking-[0.25em] text-slate-500 dark:border-slate-800 dark:text-slate-400">
               Preview
-              <span className="text-[10px] font-normal tracking-[0.2em]">PDF Ready</span>
+              <span className="text-[10px] font-normal tracking-[0.2em]">
+                PDF Ready
+              </span>
             </div>
             <div className="flex-1 overflow-auto bg-slate-100 p-6 dark:bg-white/5">
-              <div ref={previewRef} className="rounded-2xl bg-white p-6 text-slate-900 shadow-[0_18px_35px_rgba(15,23,42,0.18)]">
+              <div
+                ref={previewRef}
+                className="rounded-2xl bg-white p-6 text-slate-900 shadow-[0_18px_35px_rgba(15,23,42,0.18)]"
+              >
                 <article
                   className="max-w-none"
                   // eslint-disable-next-line react/no-danger

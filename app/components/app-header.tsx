@@ -7,7 +7,12 @@ type AppHeaderProps = {
   actions?: ReactNode
 }
 
-export function AppHeader({ subtitle, title, backHref, actions }: AppHeaderProps) {
+export function AppHeader({
+  subtitle,
+  title,
+  backHref,
+  actions,
+}: AppHeaderProps) {
   return (
     <header>
       <div className="border border-slate-200 bg-white/80 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
@@ -39,7 +44,9 @@ export function AppHeader({ subtitle, title, backHref, actions }: AppHeaderProps
               </div>
             )}
           </div>
-          {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+          {actions ? (
+            <div className="flex flex-wrap items-center gap-2">{actions}</div>
+          ) : null}
         </div>
       </div>
     </header>

@@ -5,7 +5,10 @@ import type { Route } from './+types/home'
 export function meta({}: Route.MetaArgs) {
   return [
     { title: 'Markdown to PDF' },
-    { name: 'description', content: 'Create PDFs from Markdown with a live preview.' },
+    {
+      name: 'description',
+      content: 'Create PDFs from Markdown with a live preview.',
+    },
   ]
 }
 
@@ -18,7 +21,9 @@ export default function Home() {
       setTheme(stored)
       return
     }
-    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
+    const prefersDark = window.matchMedia?.(
+      '(prefers-color-scheme: dark)',
+    ).matches
     setTheme(prefersDark ? 'dark' : 'light')
   }, [])
 
@@ -44,50 +49,52 @@ export default function Home() {
             title="Markdown to PDF"
             actions={
               <>
-              <button
-                type="button"
-                onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-                aria-label="Toggle theme"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-900 shadow-lg transition hover:-translate-y-0.5 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100"
-              >
-                {theme === 'dark' ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-5 w-5"
-                    aria-hidden="true"
-                  >
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 2v2" />
-                    <path d="M12 20v2" />
-                    <path d="M4.93 4.93l1.41 1.41" />
-                    <path d="M17.66 17.66l1.41 1.41" />
-                    <path d="M2 12h2" />
-                    <path d="M20 12h2" />
-                    <path d="M6.34 17.66l-1.41 1.41" />
-                    <path d="M19.07 4.93l-1.41 1.41" />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-5 w-5"
-                    aria-hidden="true"
-                  >
-                    <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" />
-                  </svg>
-                )}
-              </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+                  }
+                  aria-label="Toggle theme"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-900 shadow-lg transition hover:-translate-y-0.5 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100"
+                >
+                  {theme === 'dark' ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-5 w-5"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M12 2v2" />
+                      <path d="M12 20v2" />
+                      <path d="M4.93 4.93l1.41 1.41" />
+                      <path d="M17.66 17.66l1.41 1.41" />
+                      <path d="M2 12h2" />
+                      <path d="M20 12h2" />
+                      <path d="M6.34 17.66l-1.41 1.41" />
+                      <path d="M19.07 4.93l-1.41 1.41" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-5 w-5"
+                      aria-hidden="true"
+                    >
+                      <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" />
+                    </svg>
+                  )}
+                </button>
                 <a
                   className="rounded-xl bg-gradient-to-r from-amber-400 to-cyan-400 px-5 py-2 text-sm font-semibold text-slate-950 shadow-[0_14px_30px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5"
                   href="/editor"
@@ -100,62 +107,62 @@ export default function Home() {
         </div>
 
         <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 pb-12 pt-10">
-
-        <main className="mt-16 grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
-          <section>
-            <p className="text-xs uppercase tracking-[0.4em] text-slate-500 dark:text-slate-400">
-              Build clean docs fast
-            </p>
-            <h2 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl">
-              Markdown writing with a studio-grade PDF export.
-            </h2>
-            <p className="mt-5 max-w-xl text-lg text-slate-600 dark:text-slate-300">
-              A focused writing space with realtime preview, document controls, and
-              a clean export pipeline. Designed for docs, specs, and handoffs.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <a
-                className="rounded-full bg-gradient-to-r from-amber-400 to-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 shadow-[0_14px_30px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5"
-                href="/editor"
-              >
-                Start Writing
-              </a>
-              <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
-                Realtime preview
-              </span>
-              <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
-                PDF ready
-              </span>
-            </div>
-          </section>
-
-          <section className="grid gap-4">
-            {[
-              {
-                title: 'Editor flow',
-                body: 'VS Code-inspired editor with line numbers and polished typography.',
-              },
-              {
-                title: 'Document controls',
-                body: 'Set page size, margins, and filename from a compact drawer.',
-              },
-              {
-                title: 'Export built-in',
-                body: 'Generate a PDF file directly, no print dialog needed.',
-              },
-            ].map((item) => (
-              <div
-                key={item.title}
-                className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_22px_50px_rgba(15,23,42,0.16)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-[0_22px_50px_rgba(2,6,23,0.55)]"
-              >
-                <h3 className="text-base font-semibold">{item.title}</h3>
-                <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-                  {item.body}
-                </p>
+          <main className="mt-16 grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+            <section>
+              <p className="text-xs uppercase tracking-[0.4em] text-slate-500 dark:text-slate-400">
+                Build clean docs fast
+              </p>
+              <h2 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl">
+                Markdown writing with a studio-grade PDF export.
+              </h2>
+              <p className="mt-5 max-w-xl text-lg text-slate-600 dark:text-slate-300">
+                A focused writing space with realtime preview, document
+                controls, and a clean export pipeline. Designed for docs, specs,
+                and handoffs.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <a
+                  className="rounded-full bg-gradient-to-r from-amber-400 to-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 shadow-[0_14px_30px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5"
+                  href="/editor"
+                >
+                  Start Writing
+                </a>
+                <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
+                  Realtime preview
+                </span>
+                <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
+                  PDF ready
+                </span>
               </div>
-            ))}
-          </section>
-        </main>
+            </section>
+
+            <section className="grid gap-4">
+              {[
+                {
+                  title: 'Editor flow',
+                  body: 'VS Code-inspired editor with line numbers and polished typography.',
+                },
+                {
+                  title: 'Document controls',
+                  body: 'Set page size, margins, and filename from a compact drawer.',
+                },
+                {
+                  title: 'Export built-in',
+                  body: 'Generate a PDF file directly, no print dialog needed.',
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_22px_50px_rgba(15,23,42,0.16)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-[0_22px_50px_rgba(2,6,23,0.55)]"
+                >
+                  <h3 className="text-base font-semibold">{item.title}</h3>
+                  <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                    {item.body}
+                  </p>
+                </div>
+              ))}
+            </section>
+          </main>
         </div>
       </div>
     </div>
