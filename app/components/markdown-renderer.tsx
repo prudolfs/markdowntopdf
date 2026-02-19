@@ -136,7 +136,13 @@ export function MarkdownRenderer({ markdown }: { markdown: string }) {
           <li style={styles.li} {...props} />
         ),
         a: ({ href, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => (
-          <a href={href} style={styles.a} target="_blank" rel="noreferrer" {...props} />
+          <a
+            href={href}
+            style={styles.a}
+            target="_blank"
+            rel="noreferrer"
+            {...props}
+          />
         ),
         blockquote: (props: HTMLAttributes<HTMLQuoteElement>) => (
           <blockquote style={styles.blockquote} {...props} />

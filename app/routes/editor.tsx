@@ -30,10 +30,12 @@ type Document = {
 
 const PAGE_SIZES = {
   a4: { label: 'A4', width: 210, height: 297 },
+  letter: { label: 'Letter', width: 216, height: 279 },
+  legal: { label: 'Legal', width: 216, height: 356 },
+  a5: { label: 'A5', width: 148, height: 210 },
 } as const
 
 type PageSize = keyof typeof PAGE_SIZES
-
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -176,7 +178,6 @@ export default function Editor() {
       link.click()
       link.remove()
       URL.revokeObjectURL(url)
-
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'PDF export failed.'
@@ -452,7 +453,7 @@ export default function Editor() {
                 onChange={(event) => setMarkdown(event.target.value)}
                 onScroll={handleScroll}
                 spellCheck={false}
-                className="h-full w-full resize-none bg-white px-6 py-4 text-sm leading-7 text-[#0f172a] outline-none selection:bg-[#fbbf24] dark:bg-[#020617] dark:text-[#f1f5f9]"
+                className="h-full w-full resize-none bg-white px-6 py-4 text-sm leading-7 text-[#0f172a] outline-none selection:bg-sky-200 selection:text-slate-900 dark:bg-[#020617] dark:text-[#f1f5f9]"
                 style={{ fontFamily: 'var(--font-mono)' }}
               />
             </div>

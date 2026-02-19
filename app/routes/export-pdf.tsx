@@ -4,6 +4,9 @@ import { MarkdownRenderer } from '../components/markdown-renderer'
 
 const PAGE_SIZES = {
   a4: { label: 'A4', width: 210, height: 297, format: 'A4' },
+  letter: { label: 'Letter', width: 216, height: 279, format: 'Letter' },
+  legal: { label: 'Legal', width: 216, height: 356, format: 'Legal' },
+  a5: { label: 'A5', width: 148, height: 210, format: 'A5' },
 } as const
 
 type PageSize = keyof typeof PAGE_SIZES

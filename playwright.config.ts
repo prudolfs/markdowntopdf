@@ -11,8 +11,7 @@ export default defineConfig({
     acceptDownloads: true,
   },
   webServer: {
-    command:
-      'CHOKIDAR_USEPOLLING=1 pnpm dev --host 127.0.0.1 --port 3000',
+    command: 'CHOKIDAR_USEPOLLING=1 pnpm dev --host 127.0.0.1 --port 3000',
     url: 'http://127.0.0.1:3000',
     reuseExistingServer: true,
     timeout: 120_000,
