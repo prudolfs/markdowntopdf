@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { AppHeader } from '../components/app-header'
 import type { Route } from './+types/home'
+import { useEditorStore } from '../stores/editor-store'
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -13,19 +14,17 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const theme = useEditorStore((state) => state.theme)
+  const setTheme = useEditorStore((state) => state.setTheme)
 
   useEffect(() => {
-    const stored = window.localStorage.getItem('theme')
-    if (stored === 'light' || stored === 'dark') {
-      setTheme(stored)
-      return
-    }
+    const stored = window.localStorage.getItem('markdown-editor')
+    if (stored) return
     const prefersDark = window.matchMedia?.(
       '(prefers-color-scheme: dark)',
     ).matches
     setTheme(prefersDark ? 'dark' : 'light')
-  }, [])
+  }, [setTheme])
 
   useEffect(() => {
     const root = document.documentElement
@@ -34,7 +33,6 @@ export default function Home() {
     } else {
       root.classList.remove('dark')
     }
-    window.localStorage.setItem('theme', theme)
   }, [theme])
 
   return (
@@ -51,9 +49,7 @@ export default function Home() {
               <>
                 <button
                   type="button"
-                  onClick={() =>
-                    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
-                  }
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                   aria-label="Toggle theme"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#e2e8f0] bg-white text-[#0f172a] shadow-lg transition hover:-translate-y-0.5 dark:border-[#1e293b] dark:bg-[#0f172a] dark:text-[#f1f5f9]"
                 >

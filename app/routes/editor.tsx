@@ -28,7 +28,8 @@ export default function Editor() {
   const markdown = useEditorStore((state) => state.markdown)
   const setMarkdown = useEditorStore((state) => state.setMarkdown)
   const resetMarkdown = useEditorStore((state) => state.resetMarkdown)
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const theme = useEditorStore((state) => state.theme)
+  const setTheme = useEditorStore((state) => state.setTheme)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [filename, setFilename] = useState('document')
   const [pageSize, setPageSize] = useState<PageSize>('a4')
@@ -76,16 +77,13 @@ export default function Editor() {
   }
 
   useEffect(() => {
-    const stored = window.localStorage.getItem('theme')
-    if (stored === 'light' || stored === 'dark') {
-      setTheme(stored)
-      return
-    }
+    const stored = window.localStorage.getItem('markdown-editor')
+    if (stored) return
     const prefersDark = window.matchMedia?.(
       '(prefers-color-scheme: dark)',
     ).matches
     setTheme(prefersDark ? 'dark' : 'light')
-  }, [])
+  }, [setTheme])
 
   useEffect(() => {
     const root = document.documentElement
@@ -94,7 +92,6 @@ export default function Editor() {
     } else {
       root.classList.remove('dark')
     }
-    window.localStorage.setItem('theme', theme)
   }, [theme])
 
   useEffect(() => {
@@ -224,7 +221,7 @@ export default function Editor() {
   }
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+    setTheme(theme === 'dark' ? 'light' : 'dark')
   }
 
   const handleDownload = async () => {

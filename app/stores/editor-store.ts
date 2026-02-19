@@ -30,6 +30,8 @@ type EditorState = {
   markdown: string
   setMarkdown: (markdown: string) => void
   resetMarkdown: () => void
+  theme: 'light' | 'dark'
+  setTheme: (theme: 'light' | 'dark') => void
 }
 
 export const useEditorStore = create<EditorState>()(
@@ -38,9 +40,15 @@ export const useEditorStore = create<EditorState>()(
       markdown: DEFAULT_MARKDOWN,
       setMarkdown: (markdown) => set({ markdown }),
       resetMarkdown: () => set({ markdown: DEFAULT_MARKDOWN }),
+      theme: 'light',
+      setTheme: (theme) => set({ theme }),
     }),
     {
       name: 'markdown-editor',
+      partialize: (state) => ({
+        markdown: state.markdown,
+        theme: state.theme,
+      }),
     },
   ),
 )

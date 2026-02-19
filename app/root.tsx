@@ -31,6 +31,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <script
+          // Ensure theme class is applied before first paint to avoid flash.
+          dangerouslySetInnerHTML={{
+            __html: `
+(() => {
+  try {
+    const raw = localStorage.getItem('markdown-editor');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    const theme = data?.state?.theme;
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else if (theme === 'light') {
+      document.documentElement.classList.remove('dark');
+    }
+  } catch {}
+})();`,
+          }}
+        />
       </head>
       <body>
         {children}
