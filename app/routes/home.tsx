@@ -120,20 +120,20 @@ export default function Home() {
                 controls, and a clean export pipeline. Designed for docs, specs,
                 and handoffs.
               </p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <a
-                  className="rounded-full bg-gradient-to-r from-amber-400 to-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 shadow-[0_14px_30px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5"
-                  href="/editor"
-                >
-                  Start Writing
-                </a>
-                <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
-                  Realtime preview
-                </span>
-                <span className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
-                  PDF ready
-                </span>
-              </div>
+            <div className="mt-8 flex flex-wrap items-center gap-2">
+              <a
+                className="rounded-xl bg-gradient-to-r from-amber-400 to-cyan-400 px-5 py-2 text-sm font-semibold text-slate-950 shadow-[0_14px_30px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5"
+                href="/editor"
+              >
+                Start Writing
+              </a>
+              <span className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-600 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
+                Realtime preview
+              </span>
+              <span className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-600 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
+                PDF ready
+              </span>
+            </div>
             </section>
 
             <section className="grid gap-4">
