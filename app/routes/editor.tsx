@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AppHeader } from '../components/app-header'
 import type { Route } from './+types/editor'
 
@@ -35,21 +35,21 @@ const PAGE_SIZES = {
 type PageSize = keyof typeof PAGE_SIZES
 
 const MARKDOWN_CLASSES = {
-  h1: 'text-3xl font-semibold text-[#0f172a]',
-  h2: 'text-2xl font-semibold text-[#0f172a]',
-  h3: 'text-xl font-semibold text-[#0f172a]',
-  h4: 'text-lg font-semibold text-[#0f172a]',
-  h5: 'text-base font-semibold text-[#0f172a]',
-  h6: 'text-sm font-semibold text-[#0f172a]',
+  h1: 'text-3xl font-semibold text-[#0f172a] avoid-break',
+  h2: 'text-2xl font-semibold text-[#0f172a] avoid-break',
+  h3: 'text-xl font-semibold text-[#0f172a] avoid-break',
+  h4: 'text-lg font-semibold text-[#0f172a] avoid-break',
+  h5: 'text-base font-semibold text-[#0f172a] avoid-break',
+  h6: 'text-sm font-semibold text-[#0f172a] avoid-break',
   p: 'mt-3 text-[#334155]',
   ul: 'mt-3 list-disc pl-5 text-[#334155]',
   ol: 'mt-3 list-decimal pl-5 text-[#334155]',
   li: 'mt-1',
   a: 'text-[#0ea5e9] underline underline-offset-4',
   code: 'rounded-md bg-[#f1f5f9] px-2 py-0.5 text-[0.95em]',
-  pre: 'mt-4 rounded-2xl bg-[#0f172a] p-4 text-[#f1f5f9] overflow-auto',
+  pre: 'mt-4 rounded-2xl bg-[#0f172a] p-4 text-[#f1f5f9] overflow-auto avoid-break',
   blockquote:
-    'mt-4 border-l-4 border-[#38bdf8] bg-[#f0f9ff] px-4 py-3 text-[#334155]',
+    'mt-4 border-l-4 border-[#38bdf8] bg-[#f0f9ff] px-4 py-3 text-[#334155] avoid-break',
   hr: 'my-6 border-t border-[#e2e8f0]',
 } as const
 
@@ -111,6 +111,8 @@ function renderMarkdown(markdown: string) {
   let listBuffer: string[] = []
   let orderedListBuffer: string[] = []
   let quoteBuffer: string[] = []
+  let blankStreak = 0
+  const blankLineSpacer = '<div style="height: 1.2em"></div>'
 
   const flushList = () => {
     if (listBuffer.length > 0) {
@@ -143,6 +145,7 @@ function renderMarkdown(markdown: string) {
     const line = rawLine.replace(/\t/g, '  ')
 
     if (line.startsWith('```')) {
+      blankStreak = 0
       if (!inCodeBlock) {
         inCodeBlock = true
         codeFence = line.slice(3).trim()
@@ -171,11 +174,16 @@ function renderMarkdown(markdown: string) {
     const trimmed = line.trim()
 
     if (trimmed === '') {
+      blankStreak += 1
       flushList()
       flushOrderedList()
       flushQuote()
+      if (blankStreak > 1) {
+        parts.push(blankLineSpacer)
+      }
       continue
     }
+    blankStreak = 0
 
     if (trimmed === '---') {
       flushList()
@@ -249,6 +257,67 @@ function renderMarkdown(markdown: string) {
   return parts.join('\n')
 }
 
+function paginateContent(
+  container: HTMLElement,
+  pageContentHeight: number,
+  pageGap: number,
+  pagePadding: number,
+) {
+  const existingSpacers = container.querySelectorAll('[data-page-spacer]')
+  existingSpacers.forEach((node) => node.remove())
+
+  const article = container.querySelector('article')
+  if (!article) return
+  const containerRect = container.getBoundingClientRect()
+  const scale =
+    container.offsetWidth > 0 ? containerRect.width / container.offsetWidth : 1
+
+  let index = 0
+  while (index < article.children.length) {
+    const element = article.children[index] as HTMLElement
+    index += 1
+    if (!element.classList.contains('avoid-break')) continue
+
+    const elementRect = element.getBoundingClientRect()
+    const articleRect = article.getBoundingClientRect()
+    const top = (elementRect.top - articleRect.top) / scale
+    const height = elementRect.height / scale
+    const bottom = top + height
+
+    if (height > pageContentHeight) continue
+
+    const pageIndex = Math.floor(top / pageContentHeight)
+    const pageBottom = (pageIndex + 1) * pageContentHeight
+
+    if (bottom > pageBottom) {
+      const spacer = document.createElement('div')
+      spacer.setAttribute('data-page-spacer', 'true')
+      spacer.style.height = `${pageBottom - top + pageGap + pagePadding + 2}px`
+      article.insertBefore(spacer, element)
+      index -= 1
+    }
+  }
+
+  // Ensure visible bottom page gap so the last page footer padding is shown
+  if (pageGap > 0) {
+    const totalHeight = article.scrollHeight
+    const remainder = totalHeight % pageContentHeight
+    if (remainder !== 0) {
+      const spacer = document.createElement('div')
+      spacer.setAttribute('data-page-spacer', 'true')
+      spacer.style.height = `${
+        pageContentHeight - remainder + pageGap + pagePadding + 2
+      }px`
+      article.appendChild(spacer)
+    } else {
+      const spacer = document.createElement('div')
+      spacer.setAttribute('data-page-spacer', 'true')
+      spacer.style.height = `${pageGap + pagePadding + 2}px`
+      article.appendChild(spacer)
+    }
+  }
+}
+
 export default function Editor() {
   const [markdown, setMarkdown] = useState(DEFAULT_MARKDOWN)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
@@ -262,8 +331,10 @@ export default function Editor() {
   const lineNumbersRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<HTMLTextAreaElement | null>(null)
   const previewRef = useRef<HTMLDivElement | null>(null)
+  const previewViewportRef = useRef<HTMLDivElement | null>(null)
   const settingsRef = useRef<HTMLDivElement | null>(null)
   const settingsButtonRef = useRef<HTMLButtonElement | null>(null)
+  const [previewScale, setPreviewScale] = useState(1)
 
   useEffect(() => {
     const stored = window.localStorage.getItem('theme')
@@ -323,6 +394,37 @@ export default function Editor() {
 
   const rendered = useMemo(() => renderMarkdown(markdown), [markdown])
   const lines = markdown.split('\n').length
+  const pageConfig = PAGE_SIZES[pageSize]
+  const pxPerMm = 96 / 25.4
+  const pageWidthPx = Math.round(pageConfig.width * pxPerMm)
+  const pageHeightPx = Math.round(pageConfig.height * pxPerMm)
+  const marginPx = Math.round(margin * pxPerMm)
+  const contentWidthPx = pageWidthPx - marginPx * 2
+  const pageGapPx = 12
+  const pageStridePx = pageHeightPx
+  const pageContentHeight = pageHeightPx - marginPx * 2
+
+  useEffect(() => {
+    const element = previewViewportRef.current
+    if (!element) return
+
+    const updateScale = () => {
+      const width = element.clientWidth
+      if (!width) return
+      const scale = Math.min(1, (width - 24) / pageWidthPx)
+      setPreviewScale(Number.isFinite(scale) ? scale : 1)
+    }
+
+    updateScale()
+    const observer = new ResizeObserver(updateScale)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [pageWidthPx])
+
+  useLayoutEffect(() => {
+    if (!previewRef.current) return
+    paginateContent(previewRef.current, pageContentHeight, 0, marginPx)
+  }, [rendered, markdown, pageContentHeight, previewScale, isExporting])
 
   const handleScroll = () => {
     if (!lineNumbersRef.current || !editorRef.current) return
@@ -340,9 +442,10 @@ export default function Editor() {
     const size = PAGE_SIZES[pageSize]
     const safeName =
       filename.trim().replace(/[\\/:*?"<>|]+/g, '-') || 'document'
-    const pxPerMm = 96 / 25.4
     const targetWidthPx = Math.round((size.width - margin * 2) * pxPerMm)
 
+    const viewport = previewViewportRef.current
+    const previousScroll = viewport?.scrollTop ?? 0
     setIsExporting(true)
     try {
       if (pdfReady === false) {
@@ -357,7 +460,6 @@ export default function Editor() {
 
       await new Promise((resolve) => setTimeout(resolve, 50))
 
-      const target = previewRef.current
       const exportRoot = document.createElement('div')
       exportRoot.style.position = 'fixed'
       exportRoot.style.left = '-10000px'
@@ -367,20 +469,24 @@ export default function Editor() {
       exportRoot.style.background = '#ffffff'
       exportRoot.style.zIndex = '-1'
 
-      const clone = target.cloneNode(true) as HTMLElement
-      clone.style.width = `${targetWidthPx}px`
-      clone.style.padding = '0px'
+      const exportContainer = document.createElement('div')
+      exportContainer.style.width = `${Math.round(pageConfig.width * pxPerMm)}px`
+      exportContainer.style.padding = `${Math.round(margin * pxPerMm)}px`
+      exportContainer.innerHTML = `<article class="max-w-none">${rendered}</article>`
 
-      exportRoot.appendChild(clone)
+      exportRoot.appendChild(exportContainer)
       document.body.appendChild(exportRoot)
 
-      const canvas = await html2canvas(clone, {
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+      paginateContent(exportContainer, pageContentHeight, 0, marginPx)
+
+      const canvas = await html2canvas(exportContainer, {
         scale: 2,
         backgroundColor: '#ffffff',
-        width: clone.scrollWidth,
-        height: clone.scrollHeight,
-        windowWidth: clone.scrollWidth,
-        windowHeight: clone.scrollHeight,
+        width: exportContainer.scrollWidth,
+        height: exportContainer.scrollHeight,
+        windowWidth: exportContainer.scrollWidth,
+        windowHeight: exportContainer.scrollHeight,
       })
       document.body.removeChild(exportRoot)
 
@@ -391,12 +497,12 @@ export default function Editor() {
         format: [size.width, size.height],
       })
 
-      const pageWidth = size.width - margin * 2
-      const pageHeight = size.height - margin * 2
+      const pageWidth = size.width
+      const pageHeight = size.height
       const imgWidth = canvas.width
       const imgHeight = canvas.height
       const pixelsPerMm = imgWidth / pageWidth
-      const pageHeightPx = Math.floor(pageHeight * pixelsPerMm)
+      const pageHeightPx = Math.round(pageHeight * pixelsPerMm)
 
       let offsetY = 0
       while (offsetY < imgHeight) {
@@ -423,8 +529,8 @@ export default function Editor() {
         pdf.addImage(
           sliceData,
           'PNG',
-          margin,
-          margin,
+          0,
+          0,
           pageWidth,
           sliceHeightMm,
           undefined,
@@ -445,6 +551,11 @@ export default function Editor() {
       setExportError(message)
     } finally {
       setIsExporting(false)
+      if (viewport) {
+        requestAnimationFrame(() => {
+          viewport.scrollTop = previousScroll
+        })
+      }
     }
   }
 
@@ -678,16 +789,59 @@ export default function Editor() {
                 PDF Ready
               </span>
             </div>
-            <div className="flex-1 overflow-auto bg-[#f1f5f9] p-6 dark:bg-white/5">
-              <div
-                ref={previewRef}
-                className="rounded-2xl bg-white p-6 text-[#0f172a] shadow-[0_18px_35px_rgba(15,23,42,0.18)]"
-              >
-                <article
-                  className="max-w-none"
-                  // eslint-disable-next-line react/no-danger
-                  dangerouslySetInnerHTML={{ __html: rendered }}
-                />
+            <div
+              ref={previewViewportRef}
+              className="flex-1 overflow-auto overflow-x-hidden bg-[#f1f5f9] p-6 dark:bg-[#0f172a]"
+            >
+              <div className="flex justify-center">
+                <div
+                  className="origin-top"
+                  style={{
+                    width: pageWidthPx,
+                    transform: `scale(${previewScale})`,
+                  }}
+                >
+                  <div
+                    className="relative rounded-2xl bg-white text-[#0f172a] shadow-[0_18px_35px_rgba(15,23,42,0.18)]"
+                    style={{
+                      minHeight: pageHeightPx,
+                      paddingTop: marginPx,
+                      paddingBottom: marginPx,
+                      paddingLeft: marginPx,
+                      paddingRight: marginPx,
+                      backgroundImage: [
+                        `linear-gradient(to bottom, #ffffff 0px, #ffffff ${pageHeightPx}px, transparent ${pageHeightPx}px, transparent ${pageStridePx}px)`,
+                        `linear-gradient(to bottom, rgba(15,23,42,0.08) 0px, rgba(15,23,42,0.08) ${marginPx}px, transparent ${marginPx}px, transparent ${pageHeightPx - marginPx}px, rgba(15,23,42,0.08) ${pageHeightPx - marginPx}px, rgba(15,23,42,0.08) ${pageHeightPx}px, transparent ${pageHeightPx}px, transparent ${pageStridePx}px)`,
+                        `linear-gradient(to bottom, transparent ${pageHeightPx - pageGapPx}px, rgba(15,23,42,0.65) ${pageHeightPx - pageGapPx}px, rgba(15,23,42,0.65) ${pageHeightPx}px, transparent ${pageHeightPx}px, transparent ${pageStridePx}px)`,
+                      ].join(', '),
+                      backgroundSize: `100% ${pageStridePx}px`,
+                      backgroundRepeat: 'repeat',
+                    }}
+                  >
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0"
+                      style={{
+                        backgroundImage: `repeating-linear-gradient(to bottom, transparent 0px, transparent ${pageHeightPx - pageGapPx}px, rgba(15,23,42,0.6) ${pageHeightPx - pageGapPx}px, rgba(15,23,42,0.6) ${pageHeightPx}px, transparent ${pageHeightPx}px, transparent ${pageStridePx}px)`,
+                        backgroundSize: `100% ${pageStridePx}px`,
+                      }}
+                    />
+                    <div
+                      ref={previewRef}
+                      style={{
+                        width: contentWidthPx,
+                        paddingTop: 1,
+                        marginTop: -1,
+                      }}
+                    >
+                      <article
+                        className="max-w-none"
+                        // eslint-disable-next-line react/no-danger
+                        dangerouslySetInnerHTML={{ __html: rendered }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
