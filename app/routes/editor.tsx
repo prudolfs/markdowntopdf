@@ -59,6 +59,11 @@ export default function Editor() {
   const previewViewportRef = useRef<HTMLDivElement | null>(null)
   const settingsRef = useRef<HTMLDivElement | null>(null)
   const settingsButtonRef = useRef<HTMLButtonElement | null>(null)
+  const [settingsPosition, setSettingsPosition] = useState<{
+    top: number
+    left: number
+    pointerLeft: number
+  } | null>(null)
   const pageConfig = PAGE_SIZES[pageSize]
   const pxPerMm = 96 / 25.4
   const pageWidthPx = Math.round(pageConfig.width * pxPerMm)
@@ -90,6 +95,25 @@ export default function Editor() {
   useEffect(() => {
     if (!settingsOpen) return
 
+    const updatePosition = () => {
+      const button = settingsButtonRef.current
+      if (!button) return
+      const rect = button.getBoundingClientRect()
+      const panelWidth = 288
+      const gap = 12
+      const minLeft = 12
+      const maxLeft = window.innerWidth - panelWidth - 12
+      const centerLeft = rect.left + rect.width / 2 - panelWidth / 2
+      const left = Math.min(Math.max(centerLeft, minLeft), maxLeft)
+      const top = rect.bottom + gap
+      const pointerLeft = rect.left + rect.width / 2 - left
+      setSettingsPosition({ top, left, pointerLeft })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as Node | null
       if (!target) return
@@ -101,6 +125,8 @@ export default function Editor() {
     document.addEventListener('mousedown', handlePointerDown)
     return () => {
       document.removeEventListener('mousedown', handlePointerDown)
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
     }
   }, [settingsOpen])
 
@@ -314,8 +340,23 @@ export default function Editor() {
         {settingsOpen && (
           <aside
             ref={settingsRef}
-            className="absolute right-6 top-28 z-10 w-72 rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-[0_30px_70px_rgba(15,23,42,0.2)] dark:border-[#1e293b] dark:bg-[#0f172a] dark:shadow-[0_30px_70px_rgba(2,6,23,0.6)]"
+            className="fixed z-50 w-72 rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-[0_30px_70px_rgba(15,23,42,0.2)] dark:border-[#1e293b] dark:bg-[#0f172a] dark:shadow-[0_30px_70px_rgba(2,6,23,0.6)]"
+            style={
+              settingsPosition
+                ? {
+                    top: settingsPosition.top,
+                    left: settingsPosition.left,
+                  }
+                : undefined
+            }
           >
+            {settingsPosition ? (
+              <span
+                aria-hidden="true"
+                className="absolute -top-2 h-4 w-4 rotate-45 border border-[#e2e8f0] bg-white dark:border-[#1e293b] dark:bg-[#0f172a]"
+                style={{ left: settingsPosition.pointerLeft - 8 }}
+              />
+            ) : null}
             <h3 className="text-xs uppercase tracking-[0.2em] text-[#64748b] dark:text-[#94a3b8]">
               Document settings
             </h3>
