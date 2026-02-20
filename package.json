@@ -15,8 +15,8 @@
     "lint:fix": "biome lint --fix .",
     "test:e2e": "playwright test",
     "screenshots": "node scripts/take-screenshots.mjs",
-    "make:gif": "node scripts/make-anim.mjs",
-    "make:mp4": "ffmpeg -y -i preview.gif -movflags +faststart -pix_fmt yuv420p preview.mp4"
+    "make:gif": "node scripts/make-anim.mjs && node scripts/update-readme-preview.mjs gif",
+    "make:mp4": "ffmpeg -y -i preview.gif -movflags +faststart -pix_fmt yuv420p preview.mp4 && node scripts/update-readme-preview.mjs mp4"
   },
   "dependencies": {
     "@react-router/node": "7.12.0",

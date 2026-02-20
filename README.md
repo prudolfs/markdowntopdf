@@ -1,8 +1,6 @@
 # Markdown to PDF
 
-<video src="preview.mp4" autoplay loop muted playsinline></video>
-
-A full-stack React Router app for authoring Markdown with a live preview and exporting to a styled PDF. The editor feels like a focused writing studio: line numbers, quick insert tools, theme toggle, and document settings (page size, margins, filename).
+![Animated preview](preview.gif)
 
 ## Highlights
 
@@ -105,3 +103,5 @@ This is a personal portfolio project, but feedback and suggestions are welcome! 
 ## License
 
 This project is open source and available under the MIT License.
+
+
