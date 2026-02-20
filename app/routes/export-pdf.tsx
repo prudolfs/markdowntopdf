@@ -101,6 +101,9 @@ export async function action({ request }: ActionFunctionArgs) {
     const useLocalPlaywright =
       process.env.PLAYWRIGHT_USE_LOCAL === '1' ||
       process.env.NODE_ENV !== 'production'
+    if (!useLocalPlaywright && process.env.VERCEL) {
+      process.env.AWS_LAMBDA_JS_RUNTIME ??= 'nodejs20.x'
+    }
     const browser = useLocalPlaywright
       ? await (async () => {
           const { chromium: playwrightChromium } = await import('playwright')
@@ -109,9 +112,6 @@ export async function action({ request }: ActionFunctionArgs) {
           })
         })()
       : await (async () => {
-          if (process.env.VERCEL && !process.env.AWS_LAMBDA_JS_RUNTIME) {
-            process.env.AWS_LAMBDA_JS_RUNTIME = 'nodejs20.x'
-          }
           const { default: chromium } = await import('@sparticuz/chromium')
           const executablePath =
             process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
@@ -119,6 +119,11 @@ export async function action({ request }: ActionFunctionArgs) {
           if (!executablePath) {
             throw new Error('Chromium executable path not found.')
           }
+          console.info('PDF export: using Sparticuz Chromium', {
+            executablePath,
+            argsCount: chromium.args.length,
+            headless: chromium.headless,
+          })
           const { chromium: playwrightChromium } = await import(
             'playwright-core'
           )
