@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { AppHeader } from '../components/app-header'
 import { EditorPanel } from '../components/editor-panel'
 import { PreviewPanel } from '../components/preview-panel'
-import { AppHeader } from '../components/app-header'
-import type { Route } from './+types/editor'
 import { useEditorStore } from '../stores/editor-store'
+import type { Route } from './+types/editor'
 
 const PAGE_SIZES = {
   a4: { label: 'A4', width: 210, height: 297 },
@@ -30,6 +30,8 @@ export default function Editor() {
   const resetMarkdown = useEditorStore((state) => state.resetMarkdown)
   const theme = useEditorStore((state) => state.theme)
   const setTheme = useEditorStore((state) => state.setTheme)
+  const exportTheme = useEditorStore((state) => state.exportTheme)
+  const setExportTheme = useEditorStore((state) => state.setExportTheme)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [filename, setFilename] = useState('document')
   const [pageSize, setPageSize] = useState<PageSize>('a4')
@@ -242,6 +244,7 @@ export default function Editor() {
           pageSize,
           margin,
           filename: safeName,
+          theme: exportTheme,
         }),
       })
 
@@ -502,6 +505,29 @@ export default function Editor() {
                   Applied on every page.
                 </p>
               </div>
+              <div>
+                <label
+                  htmlFor="pdf-theme"
+                  className="text-[#64748b] text-xs dark:text-[#94a3b8]"
+                >
+                  PDF theme
+                </label>
+                <select
+                  id="pdf-theme"
+                  value={exportTheme}
+                  onChange={(event) =>
+                    setExportTheme(event.target.value as typeof exportTheme)
+                  }
+                  className="mt-2 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-[#0f172a] text-sm dark:border-[#1e293b] dark:bg-[#020617] dark:text-[#f1f5f9]"
+                >
+                  <option value="document">Document</option>
+                  <option value="clean">Clean</option>
+                  <option value="academic">Academic</option>
+                </select>
+                <p className="mt-1 text-[#64748b] text-[11px]">
+                  Used for preview and PDF output.
+                </p>
+              </div>
             </div>
           </aside>
         )}
@@ -601,6 +627,7 @@ export default function Editor() {
             pageWidthPx={pageWidthPx}
             pageHeightPx={pageHeightPx}
             marginPx={marginPx}
+            themeId={exportTheme}
           />
         </main>
       </div>

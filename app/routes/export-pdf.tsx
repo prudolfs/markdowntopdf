@@ -1,6 +1,11 @@
 import type { ActionFunctionArgs } from '@react-router/node'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MarkdownRenderer } from '../components/markdown-renderer'
+import {
+  DEFAULT_PDF_THEME,
+  PDF_THEMES,
+  type PdfThemeId,
+} from '../components/markdown-themes'
 
 const PAGE_SIZES = {
   a4: { label: 'A4', width: 210, height: 297, format: 'A4' },
@@ -11,20 +16,32 @@ const PAGE_SIZES = {
 
 type PageSize = keyof typeof PAGE_SIZES
 
-function buildHtml(markdown: string, pageSize: PageSize, margin: number) {
+function buildHtml(
+  markdown: string,
+  pageSize: PageSize,
+  margin: number,
+  themeId: PdfThemeId,
+) {
+  const theme = PDF_THEMES[themeId]
   const content = renderToStaticMarkup(
     <div
       style={{
-        fontFamily:
-          '"Sora", "Segoe UI", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif',
-        color: '#0f172a',
+        fontFamily: theme.fontFamily,
+        color: theme.textColor,
       }}
     >
       <article style={{ maxWidth: 'none' }}>
-        <MarkdownRenderer markdown={markdown} />
+        <MarkdownRenderer markdown={markdown} themeId={themeId} />
       </article>
     </div>,
   )
+
+  const fontLinks = [
+    'https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap',
+    'https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap',
+    'https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap',
+  ]
 
   return `<!doctype html>
 <html lang="en">
@@ -33,10 +50,10 @@ function buildHtml(markdown: string, pageSize: PageSize, margin: number) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&family=Source+Code+Pro:wght@400;600&display=swap" />
+    ${fontLinks.map((href) => `<link rel="stylesheet" href="${href}" />`).join('\n    ')}
     <style>
       @page { size: ${PAGE_SIZES[pageSize].format}; margin: ${margin}mm; }
-      html, body { margin: 0; padding: 0; background: #ffffff; }
+      html, body { margin: 0; padding: 0; background: ${theme.pageBg}; }
       *, *::before, *::after { box-sizing: border-box; }
     </style>
   </head>
@@ -56,6 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
     pageSize?: PageSize
     margin?: number
     filename?: string
+    theme?: PdfThemeId
   }
 
   try {
@@ -68,11 +86,15 @@ export async function action({ request }: ActionFunctionArgs) {
   const markdown = payload.markdown ?? ''
   const pageSize = payload.pageSize ?? 'a4'
   const margin = Number.isFinite(payload.margin) ? payload.margin : 16
+  const themeId = payload.theme ?? DEFAULT_PDF_THEME
   const filename =
     payload.filename?.trim().replace(/[\\/:*?"<>|]+/g, '-') || 'document'
 
   if (!PAGE_SIZES[pageSize]) {
     return new Response('Unsupported page size.', { status: 400 })
+  }
+  if (!PDF_THEMES[themeId]) {
+    return new Response('Unsupported theme.', { status: 400 })
   }
 
   try {
@@ -82,7 +104,7 @@ export async function action({ request }: ActionFunctionArgs) {
     })
     try {
       const page = await browser.newPage()
-      const html = buildHtml(markdown, pageSize, margin)
+      const html = buildHtml(markdown, pageSize, margin, themeId)
       await page.setContent(html, { waitUntil: 'load' })
       const pdf = await page.pdf({
         format: PAGE_SIZES[pageSize].format,

@@ -1,5 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import {
+  DEFAULT_PDF_THEME,
+  type PdfThemeId,
+} from '../components/markdown-themes'
 
 export const DEFAULT_MARKDOWN = `# Markdown to PDF
 
@@ -32,6 +36,8 @@ type EditorState = {
   resetMarkdown: () => void
   theme: 'light' | 'dark'
   setTheme: (theme: 'light' | 'dark') => void
+  exportTheme: PdfThemeId
+  setExportTheme: (theme: PdfThemeId) => void
 }
 
 export const useEditorStore = create<EditorState>()(
@@ -42,12 +48,15 @@ export const useEditorStore = create<EditorState>()(
       resetMarkdown: () => set({ markdown: DEFAULT_MARKDOWN }),
       theme: 'light',
       setTheme: (theme) => set({ theme }),
+      exportTheme: DEFAULT_PDF_THEME,
+      setExportTheme: (theme) => set({ exportTheme: theme }),
     }),
     {
       name: 'markdown-editor',
       partialize: (state) => ({
         markdown: state.markdown,
         theme: state.theme,
+        exportTheme: state.exportTheme,
       }),
     },
   ),

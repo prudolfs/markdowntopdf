@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test('downloads a PDF from the editor', async ({ page }) => {
   await page.goto('/editor')

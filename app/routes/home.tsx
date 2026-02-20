@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { AppHeader } from '../components/app-header'
-import type { Route } from './+types/home'
 import { useEditorStore } from '../stores/editor-store'
+import type { Route } from './+types/home'
 
 export function meta(_: Route.MetaArgs) {
   return [

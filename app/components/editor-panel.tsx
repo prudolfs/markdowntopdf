@@ -1,6 +1,6 @@
+import { useVirtualizer } from '@tanstack/react-virtual'
 import type { RefObject } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
 import { EditorToolbar } from './editor-toolbar'
 
 type EditorPanelProps = {

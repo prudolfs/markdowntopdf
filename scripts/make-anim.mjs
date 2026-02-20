@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import GIFEncoder from 'gif-encoder-2'
 import { createCanvas, loadImage } from '@napi-rs/canvas'
+import GIFEncoder from 'gif-encoder-2'
 
 const distDir = path.resolve('.dist')
 const outputPath = path.resolve('preview.gif')

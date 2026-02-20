@@ -1,5 +1,5 @@
-import { useMemo, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { useMemo, useRef } from 'react'
 
 type EmojiPickerProps = {
   open: boolean

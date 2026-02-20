@@ -14,7 +14,9 @@ const readmePath = new URL('../README.md', import.meta.url)
 const content = await fs.readFile(readmePath, 'utf8')
 
 const lines = content.split('\n')
-const titleIndex = lines.findIndex((line) => line.trim() === '# Markdown to PDF')
+const titleIndex = lines.findIndex(
+  (line) => line.trim() === '# Markdown to PDF',
+)
 if (titleIndex === -1) {
   throw new Error('README.md title not found.')
 }

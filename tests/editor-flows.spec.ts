@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -246,4 +246,19 @@ test('theme toggle persists across reload', async ({ page }) => {
 
   await page.reload()
   await expect(page.locator('html')).toHaveClass(/dark/)
+})
+
+test('pdf theme updates preview and persists', async ({ page }) => {
+  await page.goto('/editor')
+
+  await page.getByRole('button', { name: 'Toggle settings' }).click()
+  await page.getByLabel('PDF theme').selectOption('academic')
+
+  const previewPage = page.locator('[data-preview-page]')
+  await expect(previewPage).toHaveCSS('font-family', /Source Serif 4/i)
+
+  await page.reload()
+  await page.getByRole('button', { name: 'Toggle settings' }).click()
+  await expect(page.getByLabel('PDF theme')).toHaveValue('academic')
+  await expect(previewPage).toHaveCSS('font-family', /Source Serif 4/i)
 })
