@@ -1,87 +1,107 @@
-# Welcome to React Router!
+# Markdown to PDF
 
-A modern, production-ready template for building full-stack React applications using React Router.
+<video src="preview.mp4" autoplay loop muted playsinline></video>
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+A full-stack React Router app for authoring Markdown with a live preview and exporting to a styled PDF. The editor feels like a focused writing studio: line numbers, quick insert tools, theme toggle, and document settings (page size, margins, filename).
 
-## Features
+## Highlights
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- Realtime Markdown preview with typography tuned for docs
+- PDF export via a server action powered by Playwright
+- Document settings: page size, margin, filename
+- Local autosave with manual save/load snapshots
+- Light/dark theming with a polished UI
+
+## Architecture
+
+Routes:
+- `app/routes/home.tsx`: marketing landing page
+- `app/routes/editor.tsx`: editor + preview UI
+- `app/routes/export-pdf.tsx`: server action that renders Markdown to HTML and generates the PDF
+
+State:
+- `app/stores/editor-store.ts`: Zustand store with persistence to `localStorage`
+
+Rendering:
+- `app/components/markdown-renderer.tsx`: Markdown → HTML with `react-markdown` + `rehype-raw`
+- `app/components/preview-panel.tsx`: in-app preview with configurable page sizing
+
+PDF pipeline:
+- Server action builds static HTML and uses Playwright Chromium to create the PDF
+
+## Tech Stack
+
+- React 19 + React Router 7 (full-stack runtime)
+- Vite 7 build tooling
+- TypeScript 5
+- Tailwind CSS v4
+- Zustand for editor state
+- `react-markdown` + `rehype-raw` for rendering
+- Playwright Chromium for PDF generation
+- Biome for linting/formatting
 
 ## Getting Started
 
-### Installation
-
-Install the dependencies:
+### Install
 
 ```bash
-npm install
+pnpm install
 ```
 
-### Development
-
-Start the development server with HMR:
+### Dev
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+App runs at `http://localhost:5173`.
 
-## Building for Production
-
-Create a production build:
+### Build
 
 ```bash
-npm run build
+pnpm build
 ```
 
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
+### Start (production)
 
 ```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
+pnpm start
 ```
 
-The containerized application can be deployed to any platform that supports Docker, including:
+## Key Scripts
 
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
+- `pnpm dev`: start the dev server
+- `pnpm build`: build for production
+- `pnpm start`: run the production server
+- `pnpm typecheck`: typegen + TypeScript
+- `pnpm check`: Biome checks
+- `pnpm test:e2e`: Playwright end-to-end tests
 
-### DIY Deployment
+## Deployment Notes
 
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
+- The PDF export uses Playwright in the server runtime. Ensure the deployment environment supports Chromium (or install the required browsers) and allows sandboxing flags used in `app/routes/export-pdf.tsx`.
+- For containerized deploys, include Playwright dependencies or use a base image that already provides them.
 
-Make sure to deploy the output of `npm run build`
+## Project Layout
 
 ```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
+app/
+  components/
+  routes/
+  stores/
+  root.tsx
+public/
+tests/
 ```
 
-## Styling
+## Contributing
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+This is a personal portfolio project, but feedback and suggestions are welcome! Feel free to:
 
----
+- Open issues for bugs or feature requests
+- Submit PRs for improvements
+- Share feedback on the architecture or design
 
-Built with ❤️ using React Router.
+## License
+
+This project is open source and available under the MIT License.

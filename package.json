@@ -13,7 +13,10 @@
     "format:fix": "biome format --fix .",
     "lint": "biome lint .",
     "lint:fix": "biome lint --fix .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "screenshots": "node scripts/take-screenshots.mjs",
+    "make:gif": "node scripts/make-anim.mjs",
+    "make:mp4": "ffmpeg -y -i preview.gif -movflags +faststart -pix_fmt yuv420p preview.mp4"
   },
   "dependencies": {
     "@react-router/node": "7.12.0",
@@ -30,12 +33,14 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.2",
+    "@napi-rs/canvas": "^0.1.65",
     "@playwright/test": "^1.52.0",
     "@react-router/dev": "7.12.0",
     "@tailwindcss/vite": "^4.1.13",
     "@types/node": "^22",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "gif-encoder-2": "^1.0.5",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
     "vite": "^7.1.7",
