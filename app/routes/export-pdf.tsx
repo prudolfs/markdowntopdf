@@ -1,5 +1,4 @@
 import type { ActionFunctionArgs } from '@react-router/node'
-import chromium from '@sparticuz/chromium'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MarkdownRenderer } from '~/components/markdown-renderer'
 import {
@@ -110,6 +109,10 @@ export async function action({ request }: ActionFunctionArgs) {
           })
         })()
       : await (async () => {
+          if (process.env.VERCEL && !process.env.AWS_LAMBDA_JS_RUNTIME) {
+            process.env.AWS_LAMBDA_JS_RUNTIME = 'nodejs20.x'
+          }
+          const { default: chromium } = await import('@sparticuz/chromium')
           const executablePath =
             process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
             (await chromium.executablePath())
