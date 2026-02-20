@@ -23,6 +23,12 @@ function buildHtml(
   themeId: PdfThemeId,
 ) {
   const theme = PDF_THEMES[themeId]
+  const fontLinks = [
+    'https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap',
+    'https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap',
+    'https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap',
+  ]
   const content = renderToStaticMarkup(
     <div
       style={{
@@ -35,32 +41,30 @@ function buildHtml(
       </article>
     </div>,
   )
-
-  const fontLinks = [
-    'https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap',
-    'https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@200..900&display=swap',
-    'https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap',
-  ]
-
-  return `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charSet="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-    ${fontLinks.map((href) => `<link rel="stylesheet" href="${href}" />`).join('\n    ')}
-    <style>
+  const head = [
+    '<meta charSet="utf-8" />',
+    '<meta name="viewport" content="width=device-width, initial-scale=1" />',
+    '<link rel="preconnect" href="https://fonts.googleapis.com" />',
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />',
+    ...fontLinks.map((href) => `<link rel="stylesheet" href="${href}" />`),
+    `<style>
       @page { size: ${PAGE_SIZES[pageSize].format}; margin: ${margin}mm; }
       html, body { margin: 0; padding: 0; background: ${theme.pageBg}; }
       *, *::before, *::after { box-sizing: border-box; }
-    </style>
-  </head>
-  <body>
-    ${content}
-  </body>
-</html>`
+    </style>`,
+  ].join('\n    ')
+
+  return [
+    '<!doctype html>',
+    '<html lang="en">',
+    '  <head>',
+    `    ${head}`,
+    '  </head>',
+    '  <body>',
+    `    ${content}`,
+    '  </body>',
+    '</html>',
+  ].join('\n')
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -101,38 +105,9 @@ export async function action({ request }: ActionFunctionArgs) {
     const useLocalPlaywright =
       process.env.PLAYWRIGHT_USE_LOCAL === '1' ||
       process.env.NODE_ENV !== 'production'
-    if (!useLocalPlaywright && process.env.VERCEL) {
-      process.env.AWS_LAMBDA_JS_RUNTIME ??= 'nodejs20.x'
-    }
     const browser = useLocalPlaywright
-      ? await (async () => {
-          const { chromium: playwrightChromium } = await import('playwright')
-          return playwrightChromium.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-          })
-        })()
-      : await (async () => {
-          const { default: chromium } = await import('@sparticuz/chromium')
-          const executablePath =
-            process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
-            (await chromium.executablePath())
-          if (!executablePath) {
-            throw new Error('Chromium executable path not found.')
-          }
-          console.info('PDF export: using Sparticuz Chromium', {
-            executablePath,
-            argsCount: chromium.args.length,
-            headless: chromium.headless,
-          })
-          const { chromium: playwrightChromium } = await import(
-            'playwright-core'
-          )
-          return playwrightChromium.launch({
-            args: chromium.args,
-            executablePath,
-            headless: true,
-          })
-        })()
+      ? await launchLocalChromium()
+      : await launchSparticuzChromium()
     try {
       const page = await browser.newPage()
       const html = buildHtml(markdown, pageSize, margin, themeId)
@@ -158,4 +133,34 @@ export async function action({ request }: ActionFunctionArgs) {
     console.error('PDF export failed', error)
     return new Response('PDF export failed.', { status: 500 })
   }
+}
+
+async function launchLocalChromium() {
+  const { chromium: playwrightChromium } = await import('playwright')
+  return playwrightChromium.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  })
+}
+
+async function launchSparticuzChromium() {
+  if (process.env.VERCEL) {
+    process.env.AWS_LAMBDA_JS_RUNTIME ??= 'nodejs20.x'
+  }
+  const { default: chromium } = await import('@sparticuz/chromium')
+  const executablePath =
+    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
+    (await chromium.executablePath())
+  if (!executablePath) {
+    throw new Error('Chromium executable path not found.')
+  }
+  console.info('PDF export: using Sparticuz Chromium', {
+    executablePath,
+    argsCount: chromium.args.length,
+  })
+  const { chromium: playwrightChromium } = await import('playwright-core')
+  return playwrightChromium.launch({
+    args: chromium.args,
+    executablePath,
+    headless: true,
+  })
 }
