@@ -1,9 +1,7 @@
 {
   "functions": {
     "build/server/index.js": {
-      "includeFiles": [
-        "node_modules/playwright-core/.local-browsers/**"
-      ]
+      "includeFiles": "node_modules/playwright-core/.local-browsers/**"
     }
   }
 }
