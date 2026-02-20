@@ -1,4 +1,5 @@
 import type { ActionFunctionArgs } from '@react-router/node'
+import chromium from '@sparticuz/chromium'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MarkdownRenderer } from '~/components/markdown-renderer'
 import {
@@ -98,10 +99,29 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    const { chromium } = await import('playwright')
-    const browser = await chromium.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    })
+    const useLocalPlaywright =
+      process.env.PLAYWRIGHT_USE_LOCAL === '1' ||
+      process.env.NODE_ENV !== 'production'
+    const browser = useLocalPlaywright
+      ? await (async () => {
+          const { chromium: playwrightChromium } = await import('playwright')
+          return playwrightChromium.launch({
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          })
+        })()
+      : await (async () => {
+          const executablePath =
+            process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
+            (await chromium.executablePath())
+          const { chromium: playwrightChromium } = await import(
+            'playwright-core'
+          )
+          return playwrightChromium.launch({
+            args: chromium.args,
+            executablePath,
+            headless: true,
+          })
+        })()
     try {
       const page = await browser.newPage()
       const html = buildHtml(markdown, pageSize, margin, themeId)

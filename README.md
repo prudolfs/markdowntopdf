@@ -2,6 +2,9 @@
 
 ![Animated preview](preview.gif)
 
+
+## Demo
+  [Link](markdowntopdf-woad.vercel.app)
 ## Highlights
 
 - Realtime Markdown preview with typography tuned for docs
@@ -79,7 +82,7 @@ pnpm start
 
 - The PDF export uses Playwright in the server runtime. Ensure the deployment environment supports Chromium (or install the required browsers) and allows sandboxing flags used in `app/routes/export-pdf.tsx`.
 - For containerized deploys, include Playwright dependencies or use a base image that already provides them.
-- Vercel: set `PLAYWRIGHT_BROWSERS_PATH=0` and ensure browsers are installed during build (the `postinstall` script runs `playwright install chromium`).
+- Vercel: set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` since the export route uses `@sparticuz/chromium` + `playwright-core` in production.
 
 ## Project Layout
 
@@ -104,4 +107,3 @@ This is a personal portfolio project, but feedback and suggestions are welcome! 
 ## License
 
 This project is open source and available under the MIT License.
-
