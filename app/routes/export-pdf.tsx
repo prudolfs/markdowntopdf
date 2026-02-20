@@ -113,13 +113,16 @@ export async function action({ request }: ActionFunctionArgs) {
           const executablePath =
             process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
             (await chromium.executablePath())
+          if (!executablePath) {
+            throw new Error('Chromium executable path not found.')
+          }
           const { chromium: playwrightChromium } = await import(
             'playwright-core'
           )
           return playwrightChromium.launch({
             args: chromium.args,
             executablePath,
-            headless: true,
+            headless: chromium.headless,
           })
         })()
     try {
