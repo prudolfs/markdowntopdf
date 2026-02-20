@@ -18,9 +18,9 @@ export function PreviewPanel({
 }: PreviewPanelProps) {
   return (
     <section className="flex h-[calc(100vh-220px)] flex-col overflow-hidden rounded-3xl border border-[#e2e8f0] bg-white shadow-[0_26px_60px_rgba(15,23,42,0.18)] backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:shadow-[0_26px_60px_rgba(2,6,23,0.6)]">
-      <div className="flex items-center justify-between border-b border-[#e2e8f0] px-6 py-4 text-xs uppercase tracking-[0.25em] text-[#64748b] dark:border-[#1e293b] dark:text-[#94a3b8]">
+      <div className="flex items-center justify-between border-[#e2e8f0] border-b px-6 py-4 text-[#64748b] text-xs uppercase tracking-[0.25em] dark:border-[#1e293b] dark:text-[#94a3b8]">
         Preview
-        <span className="text-[10px] font-normal tracking-[0.2em]">
+        <span className="font-normal text-[10px] tracking-[0.2em]">
           PDF Ready
         </span>
       </div>

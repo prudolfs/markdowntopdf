@@ -23,11 +23,11 @@ export function AppHeader({
                 <span className="h-3 w-3 rounded-full bg-gradient-to-br from-[#fbbf24] via-[#22d3ee] to-[#a78bfa] shadow-[0_0_18px_rgba(34,211,238,0.6)]" />
                 <div>
                   {subtitle ? (
-                    <p className="text-xs uppercase tracking-[0.3em] text-[#64748b] dark:text-[#94a3b8]">
+                    <p className="text-[#64748b] text-xs uppercase tracking-[0.3em] dark:text-[#94a3b8]">
                       {subtitle}
                     </p>
                   ) : null}
-                  <h1 className="text-lg font-semibold">{title}</h1>
+                  <h1 className="font-semibold text-lg">{title}</h1>
                 </div>
               </a>
             ) : (
@@ -35,11 +35,11 @@ export function AppHeader({
                 <span className="h-3 w-3 rounded-full bg-gradient-to-br from-[#fbbf24] via-[#22d3ee] to-[#a78bfa] shadow-[0_0_18px_rgba(34,211,238,0.6)]" />
                 <div>
                   {subtitle ? (
-                    <p className="text-xs uppercase tracking-[0.3em] text-[#64748b] dark:text-[#94a3b8]">
+                    <p className="text-[#64748b] text-xs uppercase tracking-[0.3em] dark:text-[#94a3b8]">
                       {subtitle}
                     </p>
                   ) : null}
-                  <h1 className="text-lg font-semibold">{title}</h1>
+                  <h1 className="font-semibold text-lg">{title}</h1>
                 </div>
               </div>
             )}

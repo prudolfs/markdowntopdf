@@ -1,5 +1,5 @@
 import type { RefObject } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { EditorToolbar } from './editor-toolbar'
 
@@ -94,15 +94,15 @@ export function EditorPanel({
     )
   }
 
-  const clearSelection = () => {
+  const clearSelection = useCallback(() => {
     setSelectedDocs([])
-  }
+  }, [])
 
   useEffect(() => {
     if (!loadOpen) {
       clearSelection()
     }
-  }, [loadOpen])
+  }, [loadOpen, clearSelection])
 
   useEffect(() => {
     if (!saveOpen && !loadOpen && !refreshOpen) return
@@ -110,9 +110,9 @@ export function EditorPanel({
 
   return (
     <section className="relative flex h-[calc(100vh-220px)] flex-col overflow-visible rounded-3xl border border-[#e2e8f0] bg-white shadow-[0_26px_60px_rgba(15,23,42,0.18)] backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:shadow-[0_26px_60px_rgba(2,6,23,0.6)]">
-      <div className="flex items-center justify-between border-b border-[#e2e8f0] px-6 py-4 text-xs uppercase tracking-[0.25em] text-[#64748b] dark:border-[#1e293b] dark:text-[#94a3b8]">
+      <div className="flex items-center justify-between border-[#e2e8f0] border-b px-6 py-4 text-[#64748b] text-xs uppercase tracking-[0.25em] dark:border-[#1e293b] dark:text-[#94a3b8]">
         Editor
-        <span className="text-[10px] font-normal tracking-[0.2em]">
+        <span className="font-normal text-[10px] tracking-[0.2em]">
           Realtime
         </span>
       </div>
@@ -122,13 +122,16 @@ export function EditorPanel({
       >
         <div
           ref={lineNumbersRef}
-          className="overflow-hidden border-r border-[#e2e8f0] bg-[#f1f5f9] py-4 text-right text-xs text-[#64748b] dark:border-[#1e293b] dark:bg-[#020617]"
+          className="overflow-hidden border-[#e2e8f0] border-r bg-[#f1f5f9] py-4 text-right text-[#64748b] text-xs dark:border-[#1e293b] dark:bg-[#020617]"
         >
-          {Array.from({ length: lines }, (_, index) => (
-            <span key={index} className="block px-4 leading-7">
-              {index + 1}
-            </span>
-          ))}
+          {Array.from({ length: lines }, (_, index) => {
+            const lineNumber = index + 1
+            return (
+              <span key={lineNumber} className="block px-4 leading-7">
+                {lineNumber}
+              </span>
+            )
+          })}
         </div>
         <textarea
           ref={editorRef}
@@ -136,7 +139,7 @@ export function EditorPanel({
           onChange={(event) => onMarkdownChange(event.target.value)}
           onScroll={onScroll}
           spellCheck={false}
-          className="h-full w-full resize-none bg-white px-6 py-4 text-sm leading-7 text-[#0f172a] outline-none selection:bg-sky-200 selection:text-slate-900 dark:bg-[#020617] dark:text-[#f1f5f9]"
+          className="h-full w-full resize-none bg-white px-6 py-4 text-[#0f172a] text-sm leading-7 outline-none selection:bg-sky-200 selection:text-slate-900 dark:bg-[#020617] dark:text-[#f1f5f9]"
           style={{ fontFamily: 'var(--font-mono)' }}
         />
       </div>
@@ -151,7 +154,7 @@ export function EditorPanel({
           onEmojiClose={onEmojiClose}
           onMarkdownClose={onMarkdownClose}
         />
-        <div className="absolute right-4 top-3 flex items-center gap-2">
+        <div className="absolute top-3 right-4 flex items-center gap-2">
           <button
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#e2e8f0] bg-white text-[#0f172a] shadow-lg transition hover:-translate-y-0.5 dark:border-[#1e293b] dark:bg-[#0f172a] dark:text-[#f1f5f9]"
@@ -223,33 +226,33 @@ export function EditorPanel({
         </div>
         {saveOpen ? (
           <div
-            className="absolute bottom-14 right-4 z-50 w-80 rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-[0_20px_45px_rgba(15,23,42,0.2)] dark:border-[#1e293b] dark:bg-[#0f172a]"
+            className="absolute right-4 bottom-14 z-50 w-80 rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-[0_20px_45px_rgba(15,23,42,0.2)] dark:border-[#1e293b] dark:bg-[#0f172a]"
             data-editor-popover
           >
             <span
               aria-hidden="true"
-              className="absolute -bottom-2 right-14 h-4 w-4 rotate-45 border border-[#e2e8f0] bg-white dark:border-[#1e293b] dark:bg-[#0f172a]"
+              className="absolute right-14 -bottom-2 h-4 w-4 rotate-45 border border-[#e2e8f0] bg-white dark:border-[#1e293b] dark:bg-[#0f172a]"
             />
-            <p className="text-xs font-semibold text-[#0f172a] dark:text-[#f1f5f9]">
+            <p className="font-semibold text-[#0f172a] text-xs dark:text-[#f1f5f9]">
               Save document
             </p>
             <input
               value={saveName}
               onChange={(event) => onSaveNameChange(event.target.value)}
               placeholder="Document name"
-              className="mt-2 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-xs text-[#0f172a] dark:border-[#1e293b] dark:bg-[#020617] dark:text-[#f1f5f9]"
+              className="mt-2 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-[#0f172a] text-xs dark:border-[#1e293b] dark:bg-[#020617] dark:text-[#f1f5f9]"
             />
             <div className="mt-4 flex items-center justify-end gap-2">
               <button
                 type="button"
-                className="rounded-xl border border-[#e2e8f0] px-4 py-2 text-[11px] font-semibold text-[#0f172a] shadow-sm transition hover:-translate-y-0.5 dark:border-[#1e293b] dark:text-[#f1f5f9]"
+                className="rounded-xl border border-[#e2e8f0] px-4 py-2 font-semibold text-[#0f172a] text-[11px] shadow-sm transition hover:-translate-y-0.5 dark:border-[#1e293b] dark:text-[#f1f5f9]"
                 onClick={onSaveClose}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                className="rounded-xl bg-[#0f172a] px-4 py-2 text-[11px] font-semibold text-white shadow-[0_10px_20px_rgba(15,23,42,0.25)] transition hover:-translate-y-0.5 dark:bg-white dark:text-[#0f172a]"
+                className="rounded-xl bg-[#0f172a] px-4 py-2 font-semibold text-[11px] text-white shadow-[0_10px_20px_rgba(15,23,42,0.25)] transition hover:-translate-y-0.5 dark:bg-white dark:text-[#0f172a]"
                 onClick={onSaveConfirm}
               >
                 Save
@@ -259,15 +262,15 @@ export function EditorPanel({
         ) : null}
         {loadOpen ? (
           <div
-            className="absolute bottom-14 right-4 z-50 w-80 rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-[0_20px_45px_rgba(15,23,42,0.2)] dark:border-[#1e293b] dark:bg-[#0f172a]"
+            className="absolute right-4 bottom-14 z-50 w-80 rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-[0_20px_45px_rgba(15,23,42,0.2)] dark:border-[#1e293b] dark:bg-[#0f172a]"
             data-editor-popover
           >
             <span
               aria-hidden="true"
-              className="absolute -bottom-2 right-24 h-4 w-4 rotate-45 border border-[#e2e8f0] bg-white dark:border-[#1e293b] dark:bg-[#0f172a]"
+              className="absolute right-24 -bottom-2 h-4 w-4 rotate-45 border border-[#e2e8f0] bg-white dark:border-[#1e293b] dark:bg-[#0f172a]"
             />
             <div className="flex items-center justify-between pr-4">
-              <p className="text-xs font-semibold text-[#0f172a] dark:text-[#f1f5f9]">
+              <p className="font-semibold text-[#0f172a] text-xs dark:text-[#f1f5f9]">
                 Load document
               </p>
               <div className="flex w-8 justify-end">
@@ -304,7 +307,7 @@ export function EditorPanel({
               className="mt-3 h-56 overflow-auto rounded-xl border border-[#e2e8f0] bg-white p-1 pr-2 dark:border-[#1e293b] dark:bg-[#020617]"
             >
               {savedDocs.length === 0 ? (
-                <p className="px-2 py-3 text-xs text-[#94a3b8]">
+                <p className="px-2 py-3 text-[#94a3b8] text-xs">
                   No saved documents.
                 </p>
               ) : (
@@ -322,7 +325,7 @@ export function EditorPanel({
                       <button
                         key={doc.name}
                         type="button"
-                        className="absolute left-0 right-0 flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-xs font-semibold text-[#0f172a] hover:bg-[#f1f5f9] dark:text-[#f1f5f9] dark:hover:bg-[#111827]"
+                        className="absolute right-0 left-0 flex w-full items-center justify-between rounded-lg px-2 py-2 text-left font-semibold text-[#0f172a] text-xs hover:bg-[#f1f5f9] dark:text-[#f1f5f9] dark:hover:bg-[#111827]"
                         style={{ transform: `translateY(${row.start}px)` }}
                         onClick={() => {
                           onLoadSelect(doc.name)
@@ -373,14 +376,14 @@ export function EditorPanel({
             {deleteOpen ? (
               <div className="absolute inset-3 z-30 flex items-center justify-center rounded-xl border border-rose-200 bg-rose-50/95 p-4 text-[11px] text-rose-700 backdrop-blur">
                 <div className="w-full">
-                  <p className="text-sm font-semibold">
+                  <p className="font-semibold text-sm">
                     Delete selected documents?
                   </p>
                   <p className="mt-1">This action cannot be undone.</p>
                   <div className="mt-4 flex items-center justify-end gap-2">
                     <button
                       type="button"
-                      className="rounded-xl border border-rose-200 px-4 py-2 text-[11px] font-semibold text-rose-700 shadow-sm transition hover:-translate-y-0.5"
+                      className="rounded-xl border border-rose-200 px-4 py-2 font-semibold text-[11px] text-rose-700 shadow-sm transition hover:-translate-y-0.5"
                       onClick={() => {
                         onDeleteClose()
                         clearSelection()
@@ -390,7 +393,7 @@ export function EditorPanel({
                     </button>
                     <button
                       type="button"
-                      className="rounded-xl bg-rose-500 px-4 py-2 text-[11px] font-semibold text-white shadow-[0_10px_20px_rgba(244,63,94,0.25)] transition hover:-translate-y-0.5"
+                      className="rounded-xl bg-rose-500 px-4 py-2 font-semibold text-[11px] text-white shadow-[0_10px_20px_rgba(244,63,94,0.25)] transition hover:-translate-y-0.5"
                       onClick={() => {
                         onDeleteConfirm(selectedDocs)
                         clearSelection()
@@ -406,30 +409,30 @@ export function EditorPanel({
         ) : null}
         {refreshOpen ? (
           <div
-            className="absolute bottom-14 right-4 z-50 w-80 rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-[0_20px_45px_rgba(15,23,42,0.2)] dark:border-[#1e293b] dark:bg-[#0f172a]"
+            className="absolute right-4 bottom-14 z-50 w-80 rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-[0_20px_45px_rgba(15,23,42,0.2)] dark:border-[#1e293b] dark:bg-[#0f172a]"
             data-editor-popover
           >
             <span
               aria-hidden="true"
-              className="absolute -bottom-2 right-6 h-4 w-4 rotate-45 border border-[#e2e8f0] bg-white dark:border-[#1e293b] dark:bg-[#0f172a]"
+              className="absolute right-6 -bottom-2 h-4 w-4 rotate-45 border border-[#e2e8f0] bg-white dark:border-[#1e293b] dark:bg-[#0f172a]"
             />
-            <p className="text-xs font-semibold text-[#0f172a] dark:text-[#f1f5f9]">
+            <p className="font-semibold text-[#0f172a] text-xs dark:text-[#f1f5f9]">
               Reset editor?
             </p>
-            <p className="mt-1 text-[11px] text-[#64748b] dark:text-[#94a3b8]">
+            <p className="mt-1 text-[#64748b] text-[11px] dark:text-[#94a3b8]">
               This will restore the default markdown.
             </p>
             <div className="mt-4 flex items-center justify-end gap-2">
               <button
                 type="button"
-                className="rounded-xl border border-[#e2e8f0] px-4 py-2 text-[11px] font-semibold text-[#0f172a] shadow-sm transition hover:-translate-y-0.5 dark:border-[#1e293b] dark:text-[#f1f5f9]"
+                className="rounded-xl border border-[#e2e8f0] px-4 py-2 font-semibold text-[#0f172a] text-[11px] shadow-sm transition hover:-translate-y-0.5 dark:border-[#1e293b] dark:text-[#f1f5f9]"
                 onClick={onRefreshClose}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                className="rounded-xl bg-[#0f172a] px-4 py-2 text-[11px] font-semibold text-white shadow-[0_10px_20px_rgba(15,23,42,0.25)] transition hover:-translate-y-0.5 dark:bg-white dark:text-[#0f172a]"
+                className="rounded-xl bg-[#0f172a] px-4 py-2 font-semibold text-[11px] text-white shadow-[0_10px_20px_rgba(15,23,42,0.25)] transition hover:-translate-y-0.5 dark:bg-white dark:text-[#0f172a]"
                 onClick={onRefreshConfirm}
               >
                 Reset

@@ -23,19 +23,8 @@ export const links: Route.LinksFunction = () => [
   },
 ]
 
-export function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-        <script
-          // Ensure theme class is applied before first paint to avoid flash.
-          dangerouslySetInnerHTML={{
-            __html: `
-(() => {
+function ThemeScript() {
+  const script = `(() => {
   try {
     const raw = localStorage.getItem('markdown-editor');
     if (!raw) return;
@@ -47,9 +36,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.remove('dark');
     }
   } catch {}
-})();`,
-          }}
-        />
+})();`
+
+  return <script>{script}</script>
+}
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
+        <ThemeScript />
       </head>
       <body>
         {children}
@@ -81,11 +81,11 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
+    <main className="container mx-auto p-4 pt-16">
       <h1>{message}</h1>
       <p>{details}</p>
       {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
+        <pre className="w-full overflow-x-auto p-4">
           <code>{stack}</code>
         </pre>
       )}

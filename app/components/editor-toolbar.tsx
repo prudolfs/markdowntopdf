@@ -161,13 +161,13 @@ function EmojiPicker({ open, onClose, onSelect }: EmojiPickerProps) {
         className="absolute -top-2 left-6 h-4 w-4 rotate-45 border border-[#e2e8f0] bg-white dark:border-[#1e293b] dark:bg-[#0f172a]"
       />
       <div className="flex items-center justify-between">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-[#94a3b8]">
+        <p className="text-[#94a3b8] text-[10px] uppercase tracking-[0.2em]">
           Emoji
         </p>
         <button
           type="button"
           onClick={onClose}
-          className="text-[11px] font-semibold text-[#0ea5e9]"
+          className="font-semibold text-[#0ea5e9] text-[11px]"
         >
           Done
         </button>
@@ -185,7 +185,7 @@ function EmojiPicker({ open, onClose, onSelect }: EmojiPickerProps) {
             return (
               <div
                 key={row.key}
-                className="absolute left-0 right-0 grid grid-cols-8 gap-2 text-lg"
+                className="absolute right-0 left-0 grid grid-cols-8 gap-2 text-lg"
                 style={{ transform: `translateY(${row.start}px)` }}
               >
                 {rowEmojis.map((emoji, index) => (
@@ -248,13 +248,13 @@ function MarkdownPicker({ open, onClose, onInsert }: MarkdownPickerProps) {
         className="absolute -top-2 left-16 h-4 w-4 rotate-45 border border-[#e2e8f0] bg-white dark:border-[#1e293b] dark:bg-[#0f172a]"
       />
       <div className="flex items-center justify-between">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-[#94a3b8]">
+        <p className="text-[#94a3b8] text-[10px] uppercase tracking-[0.2em]">
           Markdown
         </p>
         <button
           type="button"
           onClick={onClose}
-          className="text-[11px] font-semibold text-[#0ea5e9]"
+          className="font-semibold text-[#0ea5e9] text-[11px]"
         >
           Done
         </button>
@@ -272,24 +272,24 @@ function MarkdownPicker({ open, onClose, onInsert }: MarkdownPickerProps) {
             return (
               <div
                 key={row.key}
-                className="absolute left-0 right-0"
+                className="absolute right-0 left-0"
                 style={{ transform: `translateY(${row.start}px)` }}
               >
                 {rowData.type === 'label' ? (
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#cbd5e1]">
+                  <p className="text-[#cbd5e1] text-[10px] uppercase tracking-[0.2em]">
                     {rowData.label}
                   </p>
                 ) : (
                   <button
                     type="button"
-                    className="flex w-full items-center justify-between rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-left text-xs font-semibold text-[#0f172a] shadow-sm transition hover:-translate-y-0.5 dark:border-[#1e293b] dark:bg-[#020617] dark:text-[#e2e8f0]"
+                    className="flex w-full items-center justify-between rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-left font-semibold text-[#0f172a] text-xs shadow-sm transition hover:-translate-y-0.5 dark:border-[#1e293b] dark:bg-[#020617] dark:text-[#e2e8f0]"
                     onClick={() => {
                       onInsert(rowData.item.value, rowData.item.cursorOffset)
                       onClose()
                     }}
                   >
                     <span>{rowData.item.label}</span>
-                    <span className="text-[10px] text-[#94a3b8]">Insert</span>
+                    <span className="text-[#94a3b8] text-[10px]">Insert</span>
                   </button>
                 )}
               </div>
@@ -324,7 +324,7 @@ export function EditorToolbar({
 }: EditorToolbarProps) {
   return (
     <div
-      className="relative flex items-center gap-2 rounded-b-3xl border-t border-[#e2e8f0] bg-white px-4 py-3 text-xs text-[#475569] dark:border-[#1e293b] dark:bg-[#0f172a] dark:text-[#cbd5e1]"
+      className="relative flex items-center gap-2 rounded-b-3xl border-[#e2e8f0] border-t bg-white px-4 py-3 text-[#475569] text-xs dark:border-[#1e293b] dark:bg-[#0f172a] dark:text-[#cbd5e1]"
       data-editor-toolbar
     >
       <button

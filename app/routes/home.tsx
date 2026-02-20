@@ -3,7 +3,7 @@ import { AppHeader } from '../components/app-header'
 import type { Route } from './+types/home'
 import { useEditorStore } from '../stores/editor-store'
 
-export function meta({}: Route.MetaArgs) {
+export function meta(_: Route.MetaArgs) {
   return [
     { title: 'Markdown to PDF' },
     {
@@ -92,7 +92,7 @@ export default function Home() {
                   )}
                 </button>
                 <a
-                  className="rounded-xl bg-gradient-to-r from-[#fbbf24] to-[#22d3ee] px-5 py-2 text-sm font-semibold text-[#020617] shadow-[0_14px_30px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5"
+                  className="rounded-xl bg-gradient-to-r from-[#fbbf24] to-[#22d3ee] px-5 py-2 font-semibold text-[#020617] text-sm shadow-[0_14px_30px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5"
                   href="/editor"
                 >
                   Open Editor
@@ -102,31 +102,31 @@ export default function Home() {
           />
         </div>
 
-        <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 pb-12 pt-10">
+        <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 pt-10 pb-12">
           <main className="mt-16 grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
             <section>
-              <p className="text-xs uppercase tracking-[0.4em] text-[#64748b] dark:text-[#94a3b8]">
+              <p className="text-[#64748b] text-xs uppercase tracking-[0.4em] dark:text-[#94a3b8]">
                 Build clean docs fast
               </p>
-              <h2 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl">
+              <h2 className="mt-4 font-semibold text-4xl leading-tight md:text-5xl">
                 Markdown writing with a studio-grade PDF export.
               </h2>
-              <p className="mt-5 max-w-xl text-lg text-[#475569] dark:text-[#cbd5e1]">
+              <p className="mt-5 max-w-xl text-[#475569] text-lg dark:text-[#cbd5e1]">
                 A focused writing space with realtime preview, document
                 controls, and a clean export pipeline. Designed for docs, specs,
                 and handoffs.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-2">
                 <a
-                  className="rounded-xl bg-gradient-to-r from-[#fbbf24] to-[#22d3ee] px-5 py-2 text-sm font-semibold text-[#020617] shadow-[0_14px_30px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5"
+                  className="rounded-xl bg-gradient-to-r from-[#fbbf24] to-[#22d3ee] px-5 py-2 font-semibold text-[#020617] text-sm shadow-[0_14px_30px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5"
                   href="/editor"
                 >
                   Start Writing
                 </a>
-                <span className="rounded-xl border border-[#e2e8f0] bg-white px-4 py-2 text-sm font-semibold text-[#475569] backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:text-[#cbd5e1]">
+                <span className="rounded-xl border border-[#e2e8f0] bg-white px-4 py-2 font-semibold text-[#475569] text-sm backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:text-[#cbd5e1]">
                   Realtime preview
                 </span>
-                <span className="rounded-xl border border-[#e2e8f0] bg-white px-4 py-2 text-sm font-semibold text-[#475569] backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:text-[#cbd5e1]">
+                <span className="rounded-xl border border-[#e2e8f0] bg-white px-4 py-2 font-semibold text-[#475569] text-sm backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:text-[#cbd5e1]">
                   PDF ready
                 </span>
               </div>
@@ -151,8 +151,8 @@ export default function Home() {
                   key={item.title}
                   className="rounded-3xl border border-[#e2e8f0] bg-white p-6 shadow-[0_22px_50px_rgba(15,23,42,0.16)] backdrop-blur dark:border-[#1e293b] dark:bg-[#0f172a] dark:shadow-[0_22px_50px_rgba(2,6,23,0.55)]"
                 >
-                  <h3 className="text-base font-semibold">{item.title}</h3>
-                  <p className="mt-3 text-sm text-[#475569] dark:text-[#cbd5e1]">
+                  <h3 className="font-semibold text-base">{item.title}</h3>
+                  <p className="mt-3 text-[#475569] text-sm dark:text-[#cbd5e1]">
                     {item.body}
                   </p>
                 </div>

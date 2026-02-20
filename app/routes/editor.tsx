@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { EditorPanel } from '../components/editor-panel'
 import { PreviewPanel } from '../components/preview-panel'
 import { AppHeader } from '../components/app-header'
@@ -14,7 +14,7 @@ const PAGE_SIZES = {
 
 type PageSize = keyof typeof PAGE_SIZES
 
-export function meta({}: Route.MetaArgs) {
+export function meta(_: Route.MetaArgs) {
   return [
     { title: 'Markdown to PDF Editor' },
     {
@@ -280,7 +280,7 @@ export default function Editor() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.2)_1px,transparent_1px)] bg-[size:52px_52px] opacity-30 dark:bg-[linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)]" />
 
       <div className="relative flex min-h-screen w-full flex-col">
-        <div className="print:hidden w-full pt-0">
+        <div className="w-full pt-0 print:hidden">
           <AppHeader
             subtitle="Markdown Studio"
             title="Markdown to PDF"
@@ -357,7 +357,7 @@ export default function Editor() {
                   type="button"
                   onClick={handleDownload}
                   disabled={isExporting}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#0f172a] px-5 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(15,23,42,0.35)] transition hover:-translate-y-0.5 dark:bg-white dark:text-[#0f172a]"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#0f172a] px-5 py-2 font-semibold text-sm text-white shadow-[0_12px_24px_rgba(15,23,42,0.35)] transition hover:-translate-y-0.5 dark:bg-white dark:text-[#0f172a]"
                 >
                   {isExporting ? (
                     <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[#334155] bg-[#1f2937] text-white dark:border-[#e2e8f0] dark:bg-white dark:text-[#0f172a]">
@@ -413,7 +413,7 @@ export default function Editor() {
 
         {exportError ? (
           <div className="mx-auto mt-4 w-full max-w-[1400px] px-6">
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 shadow-sm dark:border-[#fb7185] dark:bg-[#4c1d1d] dark:text-rose-200">
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700 text-sm shadow-sm dark:border-[#fb7185] dark:bg-[#4c1d1d] dark:text-rose-200">
               {exportError}
             </div>
           </div>
@@ -439,14 +439,14 @@ export default function Editor() {
                 style={{ left: settingsPosition.pointerLeft - 8 }}
               />
             ) : null}
-            <h3 className="text-xs uppercase tracking-[0.2em] text-[#64748b] dark:text-[#94a3b8]">
+            <h3 className="text-[#64748b] text-xs uppercase tracking-[0.2em] dark:text-[#94a3b8]">
               Document settings
             </h3>
             <div className="mt-4 space-y-4">
               <div>
                 <label
                   htmlFor="filename"
-                  className="text-xs text-[#64748b] dark:text-[#94a3b8]"
+                  className="text-[#64748b] text-xs dark:text-[#94a3b8]"
                 >
                   Filename
                 </label>
@@ -454,16 +454,16 @@ export default function Editor() {
                   id="filename"
                   value={filename}
                   onChange={(event) => setFilename(event.target.value)}
-                  className="mt-2 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-sm text-[#0f172a] dark:border-[#1e293b] dark:bg-[#020617] dark:text-[#f1f5f9]"
+                  className="mt-2 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-[#0f172a] text-sm dark:border-[#1e293b] dark:bg-[#020617] dark:text-[#f1f5f9]"
                 />
-                <p className="mt-1 text-[11px] text-[#64748b]">
+                <p className="mt-1 text-[#64748b] text-[11px]">
                   Saved as a PDF file.
                 </p>
               </div>
               <div>
                 <label
                   htmlFor="page-size"
-                  className="text-xs text-[#64748b] dark:text-[#94a3b8]"
+                  className="text-[#64748b] text-xs dark:text-[#94a3b8]"
                 >
                   Page size
                 </label>
@@ -473,7 +473,7 @@ export default function Editor() {
                   onChange={(event) =>
                     setPageSize(event.target.value as PageSize)
                   }
-                  className="mt-2 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-sm text-[#0f172a] dark:border-[#1e293b] dark:bg-[#020617] dark:text-[#f1f5f9]"
+                  className="mt-2 w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-[#0f172a] text-sm dark:border-[#1e293b] dark:bg-[#020617] dark:text-[#f1f5f9]"
                 >
                   {Object.entries(PAGE_SIZES).map(([key, value]) => (
                     <option key={key} value={key}>
@@ -485,7 +485,7 @@ export default function Editor() {
               <div>
                 <label
                   htmlFor="margin"
-                  className="text-xs text-[#64748b] dark:text-[#94a3b8]"
+                  className="text-[#64748b] text-xs dark:text-[#94a3b8]"
                 >
                   Margins ({margin}mm)
                 </label>
@@ -498,7 +498,7 @@ export default function Editor() {
                   onChange={(event) => setMargin(Number(event.target.value))}
                   className="mt-3 w-full"
                 />
-                <p className="mt-1 text-[11px] text-[#64748b]">
+                <p className="mt-1 text-[#64748b] text-[11px]">
                   Applied on every page.
                 </p>
               </div>
