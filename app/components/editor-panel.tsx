@@ -270,36 +270,38 @@ export function EditorPanel({
               <p className="text-xs font-semibold text-[#0f172a] dark:text-[#f1f5f9]">
                 Load document
               </p>
-              {selectedDocs.length > 0 ? (
-                <button
-                  type="button"
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-200 text-rose-500 transition hover:-translate-y-0.5"
-                  onClick={onDeleteToggle}
-                  aria-label="Delete selected documents"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4"
-                    aria-hidden="true"
+              <div className="flex w-8 justify-end">
+                {selectedDocs.length > 0 ? (
+                  <button
+                    type="button"
+                    className="inline-flex h-6 w-6 items-center justify-center rounded-lg border border-rose-200 text-rose-500 transition hover:-translate-y-0.5"
+                    onClick={onDeleteToggle}
+                    aria-label="Delete selected documents"
                   >
-                    <path d="M3 6h18" />
-                    <path d="M8 6V4h8v2" />
-                    <path d="M6 6l1 14h10l1-14" />
-                    <path d="M10 11v6" />
-                    <path d="M14 11v6" />
-                  </svg>
-                </button>
-              ) : null}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-4 w-4"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 6h18" />
+                      <path d="M8 6V4h8v2" />
+                      <path d="M6 6l1 14h10l1-14" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                    </svg>
+                  </button>
+                ) : null}
+              </div>
             </div>
             <div
               ref={loadScrollRef}
-              className="mt-3 h-56 overflow-auto rounded-xl border border-[#e2e8f0] bg-white p-1 pr-3 dark:border-[#1e293b] dark:bg-[#020617]"
+              className="mt-3 h-56 overflow-auto rounded-xl border border-[#e2e8f0] bg-white p-1 pr-2 dark:border-[#1e293b] dark:bg-[#020617]"
             >
               {savedDocs.length === 0 ? (
                 <p className="px-2 py-3 text-xs text-[#94a3b8]">
@@ -329,7 +331,7 @@ export function EditorPanel({
                         }}
                       >
                         <span>{doc.name}</span>
-                        <span className="flex items-center gap-2 text-[10px] text-[#94a3b8]">
+                        <div className="flex w-8 justify-end">
                           <button
                             type="button"
                             className={`inline-flex h-6 w-6 items-center justify-center rounded-lg border ${
@@ -361,7 +363,7 @@ export function EditorPanel({
                               <path d="M14 11v6" />
                             </svg>
                           </button>
-                        </span>
+                        </div>
                       </button>
                     )
                   })}
