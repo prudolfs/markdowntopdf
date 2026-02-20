@@ -324,7 +324,7 @@ export function EditorToolbar({
 }: EditorToolbarProps) {
   return (
     <div
-      className="relative flex items-center gap-2 border-t border-[#e2e8f0] bg-white px-4 py-3 text-xs text-[#475569] dark:border-[#1e293b] dark:bg-[#0f172a] dark:text-[#cbd5e1]"
+      className="relative flex items-center gap-2 rounded-b-3xl border-t border-[#e2e8f0] bg-white px-4 py-3 text-xs text-[#475569] dark:border-[#1e293b] dark:bg-[#0f172a] dark:text-[#cbd5e1]"
       data-editor-toolbar
     >
       <button
