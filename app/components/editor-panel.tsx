@@ -1,7 +1,7 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { RefObject } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { EditorToolbar } from './editor-toolbar'
+import { EditorToolbar } from '~/components/editor-toolbar'
 
 type EditorPanelProps = {
   markdown: string

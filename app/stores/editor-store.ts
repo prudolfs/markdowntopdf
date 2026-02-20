@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import {
   DEFAULT_PDF_THEME,
   type PdfThemeId,
-} from '../components/markdown-themes'
+} from '~/components/markdown-themes'
 
 export const DEFAULT_MARKDOWN = `# Markdown to PDF
 

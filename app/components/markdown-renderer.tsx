@@ -5,7 +5,7 @@ import {
   DEFAULT_PDF_THEME,
   PDF_THEMES,
   type PdfThemeId,
-} from './markdown-themes'
+} from '~/components/markdown-themes'
 
 const createStyles = (themeId: PdfThemeId) => {
   const theme = PDF_THEMES[themeId]

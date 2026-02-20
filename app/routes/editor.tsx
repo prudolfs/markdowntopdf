@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { AppHeader } from '../components/app-header'
-import { EditorPanel } from '../components/editor-panel'
-import { PreviewPanel } from '../components/preview-panel'
-import { useEditorStore } from '../stores/editor-store'
+import { AppHeader } from '~/components/app-header'
+import { EditorPanel } from '~/components/editor-panel'
+import { PreviewPanel } from '~/components/preview-panel'
+import { useEditorStore } from '~/stores/editor-store'
 import type { Route } from './+types/editor'
 
 const PAGE_SIZES = {

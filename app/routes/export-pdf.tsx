@@ -1,11 +1,11 @@
 import type { ActionFunctionArgs } from '@react-router/node'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { MarkdownRenderer } from '../components/markdown-renderer'
+import { MarkdownRenderer } from '~/components/markdown-renderer'
 import {
   DEFAULT_PDF_THEME,
   PDF_THEMES,
   type PdfThemeId,
-} from '../components/markdown-themes'
+} from '~/components/markdown-themes'
 
 const PAGE_SIZES = {
   a4: { label: 'A4', width: 210, height: 297, format: 'A4' },

@@ -1,6 +1,6 @@
 import type { RefObject } from 'react'
-import { MarkdownRenderer } from './markdown-renderer'
-import { PDF_THEMES, type PdfThemeId } from './markdown-themes'
+import { MarkdownRenderer } from '~/components/markdown-renderer'
+import { PDF_THEMES, type PdfThemeId } from '~/components/markdown-themes'
 
 type PreviewPanelProps = {
   markdown: string
